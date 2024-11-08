@@ -1,6 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
-import com.sparta.blackwhitedeliverydriver.dto.BasketRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketResponse;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ public class BasketController {
 
     private final BasketService basketService;
     @PostMapping
-    public BasketResponseDto addProductToBasket(BasketRequestDto request){
+    public BasketResponseDto addProductToBasket(BasketResponse request){
         return basketService.addProductToBasket(request);
     }
 }

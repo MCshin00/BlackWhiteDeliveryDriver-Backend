@@ -1,12 +1,24 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
-import com.sparta.blackwhitedeliverydriver.dto.BasketRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketResponse;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
+import com.sparta.blackwhitedeliverydriver.entity.Basket;
+import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class BasketService {
-    public BasketResponseDto addProductToBasket(BasketRequestDto request) {
-        return BasketResponseDto.builder().basketId("e623f3c2-4b79-4f3a-b876-9d1b5d47a283").build();
+
+    private final BasketRepository basketRepository;
+
+    public BasketResponseDto addProductToBasket(BasketResponse request) {
+        // 유저가 유효한지
+        // 상품이 유효한지
+        // 수량이 0개 이상인지 100개 미만인지
+        // 같은 지점에서 담은 상품인지
+        Basket basket = basketRepository.save(Basket.from(request));
+        return BasketResponseDto.from(basket);
     }
 }

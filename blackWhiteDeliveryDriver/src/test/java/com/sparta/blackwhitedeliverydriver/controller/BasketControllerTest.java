@@ -7,9 +7,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.blackwhitedeliverydriver.dto.BasketRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketResponse;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +43,11 @@ class BasketControllerTest {
 
         //when
         when(basketService.addProductToBasket(any())).thenReturn(BasketResponseDto.builder()
-                .basketId("e623f3c2-4b79-4f3a-b876-9d1b5d47a283")
+                .basketId(UUID.fromString("e623f3c2-4b79-4f3a-b876-9d1b5d47a283"))
                 .build());
 
         //then
-        String body = mapper.writeValueAsString(BasketRequestDto.builder()
+        String body = mapper.writeValueAsString(BasketResponse.builder()
                 .userId(userId)
                 .productId(productId)
                 .quantity(quantity)
