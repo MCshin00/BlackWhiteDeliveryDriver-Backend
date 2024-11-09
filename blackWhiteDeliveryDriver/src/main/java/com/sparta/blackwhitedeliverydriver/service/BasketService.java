@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.BasketListGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
@@ -31,5 +32,9 @@ public class BasketService {
 
         basketRepository.delete(basket);
         return BasketResponseDto.from(basket);
+    }
+
+    public BasketListGetResponseDto getBaskets (Long userId) {
+        return null;
     }
 }
