@@ -1,11 +1,13 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
-import com.sparta.blackwhitedeliverydriver.dto.BasketListGetResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +36,10 @@ public class BasketService {
         return BasketResponseDto.from(basket);
     }
 
-    public BasketListGetResponseDto getBaskets (Long userId) {
-        return null;
+    public List<BasketGetResponseDto> getBaskets(Long userId) {
+        // 유저 유효성 검증
+        // 로그인 연동시 해당 유저의 장바구니를 조회하도록 수정 필요
+        List<Basket> basketList = basketRepository.findAll();
+        return basketList.stream().map(BasketGetResponseDto::from).collect(Collectors.toList());
     }
 }

@@ -4,11 +4,13 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 @Getter
 @Builder
 public class BasketGetResponseDto {

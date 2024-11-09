@@ -1,10 +1,11 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
-import com.sparta.blackwhitedeliverydriver.dto.BasketListGetResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +30,7 @@ public class BasketController {
     }
 
     @GetMapping
-    public BasketListGetResponseDto getBaskets(){
+    public List<BasketGetResponseDto> getBaskets(){
         return basketService.getBaskets(1L);
     }
 }

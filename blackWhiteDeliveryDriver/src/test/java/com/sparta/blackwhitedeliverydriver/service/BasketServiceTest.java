@@ -8,10 +8,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
@@ -88,5 +90,29 @@ class BasketServiceTest {
         assertThrows(IllegalArgumentException.class, () -> {
             basketService.removeProductFromBasket(request);
         });
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 성공")
+    void getBaskets() {
+        //given
+        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        Integer quantity = 2;
+        Basket basket = Basket.builder()
+                .quantity(quantity)
+                .productId(UUID.fromString(productId))
+                .basketId(UUID.fromString(basketId))
+                .build();
+        //when
+        when(basketRepository.findAll()).thenReturn(List.of(basket));
+        List<BasketGetResponseDto> response = basketService.getBaskets(1L);
+
+        //then
+        Assertions.assertEquals((List.of(BasketGetResponseDto.builder()
+                .basketId(UUID.fromString(basketId))
+                .productId(UUID.fromString(productId))
+                .quantity(quantity)
+                .build())), response);
     }
 }

@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
-import com.sparta.blackwhitedeliverydriver.dto.BasketListGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
@@ -93,18 +92,14 @@ class BasketControllerTest {
         String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         Integer quantity = 2;
         //when
-        when(basketService.getBaskets(any())).thenReturn(BasketListGetResponseDto
-                .builder()
-                .basketList(List.of(BasketGetResponseDto.builder()
+        when(basketService.getBaskets(any())).thenReturn(List.of(BasketGetResponseDto.builder()
                         .basketId(UUID.fromString(basketId))
                         .productId(UUID.fromString(productId))
                         .quantity(quantity)
-                        .build()))
-                .build());
+                        .build()));
 
         //then
         mvc.perform(get(BASE_URL + "/basket"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.basketList").exists());
+                .andExpect(status().isOk());
     }
 }
