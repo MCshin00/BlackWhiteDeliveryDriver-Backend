@@ -24,6 +24,12 @@ public class BasketService {
     }
 
     public BasketResponseDto removeProductFromBasket(BasketRemoveRequestDto request) {
-        return null;
+        //유저 유효성 검사
+        //장바구니 유효성 검사
+        Basket basket = basketRepository.findById(request.getBasketId()).orElseThrow(() ->
+                new IllegalArgumentException("장바구니가 존재하지 않습니다."));
+
+        basketRepository.delete(basket);
+        return BasketResponseDto.from(basket);
     }
 }
