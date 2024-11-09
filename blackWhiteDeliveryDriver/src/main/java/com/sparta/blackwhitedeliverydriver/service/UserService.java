@@ -1,20 +1,13 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
-import com.sparta.blackwhitedeliverydriver.dto.LoginRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.SignupRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.SignupResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
-import com.sparta.blackwhitedeliverydriver.jwt.JwtUtil;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
-import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
-import com.sparta.blackwhitedeliverydriver.security.UserDetailsServiceImpl;
 import jakarta.validation.Valid;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +17,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
 
     public SignupResponseDto signup(@Valid SignupRequestDto requestDto) {
         String username = requestDto.getUsername();
@@ -60,5 +51,8 @@ public class UserService {
 
     private void checkPhoneNumber(String phoneNumber) {
         Optional<User> checkPhoneNumber = userRepository.findByPhoneNumber(phoneNumber);
+        if (checkPhoneNumber.isPresent()) {
+            throw new IllegalArgumentException("중복된 전화번호가 존재합니다.");
+        }
     }
 }

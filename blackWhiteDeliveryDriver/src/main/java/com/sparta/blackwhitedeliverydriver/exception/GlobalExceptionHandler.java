@@ -2,6 +2,7 @@ package com.sparta.blackwhitedeliverydriver.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -19,8 +20,25 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // @Valid 유효성 검사 에러 처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<RestApiException> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        StringBuilder errorMessages = new StringBuilder();
+
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errorMessages.append(error.getField())
+                        .append(" : ")
+                        .append(error.getDefaultMessage())
+                        .append(" ")
+        );
+
+        RestApiException restApiException = new RestApiException(errorMessages.toString(), HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(restApiException, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler({NullPointerException.class})
     public ResponseEntity<RestApiException> nullPointerExceptionHandler(NullPointerException ex) {
+
         RestApiException restApiException = new RestApiException(ex.getMessage(), HttpStatus.NOT_FOUND.value());
         return new ResponseEntity<>(
                 // HTTP body

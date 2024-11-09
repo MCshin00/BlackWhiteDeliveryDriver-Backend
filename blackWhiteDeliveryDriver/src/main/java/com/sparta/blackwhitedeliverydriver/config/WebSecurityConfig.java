@@ -5,7 +5,6 @@ import com.sparta.blackwhitedeliverydriver.security.JwtAuthenticationFilter;
 import com.sparta.blackwhitedeliverydriver.security.JwtAuthorizationFilter;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
