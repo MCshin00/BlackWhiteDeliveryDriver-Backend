@@ -2,6 +2,7 @@ package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.SignupRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.SignupResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.UpdateUserRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
@@ -10,6 +11,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,23 @@ public class UserService {
         User savedUser = userRepository.save(user);  // User 엔티티 저장
 
         return new SignupResponseDto(savedUser.getId());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
+    }
+
+    @Transactional
+    public SignupResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+        user.setEmail(requestDto.getEmail());
+        user.setPhoneNumber(requestDto.getPhoneNumber());
+        user.setImageUrl(requestDto.getImgUrl());
+        user.setPublicProfile(requestDto.isPublicProfile());
+        user.setRole(requestDto.getRole());
+
+        userRepository.save(user);
+
+        return new SignupResponseDto(user.getId());
     }
 
     private void checkUsername(String username) {

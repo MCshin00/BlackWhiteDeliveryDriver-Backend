@@ -38,7 +38,7 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private UserRoleEnum role;
 
-    private boolean isPublic;
+    private boolean publicProfile;
 
     private String imageUrl;
 
@@ -48,6 +48,6 @@ public class User {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.role = role;
-        this.isPublic = true;
+        this.publicProfile = true;
     }
 }
