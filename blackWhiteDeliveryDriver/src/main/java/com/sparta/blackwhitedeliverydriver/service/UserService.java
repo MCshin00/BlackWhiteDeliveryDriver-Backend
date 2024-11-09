@@ -1,8 +1,9 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.SignupRequestDto;
-import com.sparta.blackwhitedeliverydriver.dto.SignupResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.UserIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.UpdateUserRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.UserResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
@@ -23,7 +24,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuditorAware<String> auditorAware;
 
-    public SignupResponseDto signup(@Valid SignupRequestDto requestDto) {
+    public UserIdResponseDto signup(@Valid SignupRequestDto requestDto) {
         String username = requestDto.getUsername();
         String password = passwordEncoder.encode(requestDto.getPassword());
         String email = requestDto.getEmail();
@@ -38,11 +39,18 @@ public class UserService {
         user.setCreatedBy(username);
         User savedUser = userRepository.save(user);  // User 엔티티 저장
 
-        return new SignupResponseDto(savedUser.getId());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
+        return new UserIdResponseDto(savedUser.getId());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
+    }
+
+    public UserResponseDto getUserInfo(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        return new UserResponseDto(user);
     }
 
     @Transactional
-    public SignupResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, Long userId) {
+    public UserIdResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -55,11 +63,11 @@ public class UserService {
 
         userRepository.save(user);
 
-        return new SignupResponseDto(user.getId());
+        return new UserIdResponseDto(user.getId());
     }
 
     @Transactional
-    public SignupResponseDto deleteUser(Long userId) {
+    public UserIdResponseDto deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -72,7 +80,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        return new SignupResponseDto(user.getId());
+        return new UserIdResponseDto(user.getId());
     }
 
     private void checkUsername(String username) {
