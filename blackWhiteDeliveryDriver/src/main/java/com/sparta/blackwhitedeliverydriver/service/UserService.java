@@ -32,6 +32,7 @@ public class UserService {
         checkPhoneNumber(phoneNumber);
 
         User user = new User(username, password, email, phoneNumber, role);
+        user.setCreatedBy(username);
         User savedUser = userRepository.save(user);  // User 엔티티 저장
 
         return new SignupResponseDto(savedUser.getId());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
