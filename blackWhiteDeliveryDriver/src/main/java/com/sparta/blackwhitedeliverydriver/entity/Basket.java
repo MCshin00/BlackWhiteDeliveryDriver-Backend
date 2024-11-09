@@ -21,13 +21,11 @@ public class Basket {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID basketId;
-    private Long userId; // 임시 컬럼
     private UUID productId; // 임시 컬럼
     private Integer quantity;
 
     public static Basket from(BasketAddRequestDto requestDto) {
         return Basket.builder()
-                .userId(requestDto.getUserId())
                 .productId(UUID.fromString(requestDto.getProductId()))
                 .quantity(requestDto.getQuantity())
                 .build();

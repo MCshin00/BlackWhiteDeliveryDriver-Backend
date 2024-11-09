@@ -39,7 +39,6 @@ class BasketControllerTest {
     @DisplayName("장바구니 담기")
     void addProductToBasket() throws Exception {
         //given
-        Long userId = 1L;
         String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         int quantity = 2;
 
@@ -50,7 +49,6 @@ class BasketControllerTest {
 
         //then
         String body = mapper.writeValueAsString(BasketAddRequestDto.builder()
-                .userId(userId)
                 .productId(productId)
                 .quantity(quantity)
                 .build());

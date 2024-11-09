@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 public class BasketAddRequestDto {
-    private Long userId;
     private String productId;
     private Integer quantity;
 }

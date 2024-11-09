@@ -32,14 +32,13 @@ class BasketServiceTest {
     @DisplayName("장바구니 담기 성공")
     void addProductToBasket_success() {
         //given
-        BasketAddRequestDto request = BasketAddRequestDto.builder().userId(1L)
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId("f47ac10b-58cc-4372-a567-0e02b2c3d479")
                 .quantity(2)
                 .build();
 
         given(basketRepository.save(any())).willReturn(
                 Basket.builder().basketId(UUID.fromString("7c9f6b72-4d8e-49b0-9b6e-7fc8f0e905d9"))
-                        .userId(1L)
                         .productId(UUID.fromString(request.getProductId()))
                         .quantity(request.getQuantity()).build());
 
