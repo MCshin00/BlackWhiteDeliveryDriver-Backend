@@ -7,8 +7,10 @@ import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditorAware<String> auditorAware;
 
     public SignupResponseDto signup(@Valid SignupRequestDto requestDto) {
         String username = requestDto.getUsername();
@@ -49,6 +52,23 @@ public class UserService {
         user.setImageUrl(requestDto.getImgUrl());
         user.setPublicProfile(requestDto.isPublicProfile());
         user.setRole(requestDto.getRole());
+
+        userRepository.save(user);
+
+        return new SignupResponseDto(user.getId());
+    }
+
+    @Transactional
+    public SignupResponseDto deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 삭제를 수행한 사용자의 username을 가져옵니다.
+        String deletedBy = auditorAware.getCurrentAuditor()
+                .orElseThrow(() -> new IllegalStateException("로그인 정보 없음"));
+
+        user.setDeletedBy(deletedBy);
+        user.setDeletedDate(LocalDateTime.now());
 
         userRepository.save(user);
 

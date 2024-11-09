@@ -55,4 +55,23 @@ public class UserController {
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @DeleteMapping("/")
+    public ResponseEntity<?> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 사용자 정보 삭제(soft-delete)
+        SignupResponseDto responseDto = userService.deleteUser(userDetails.getId());
+
+        // 성공 응답으로 200 OK와 사용자 ID 반환
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        // 사용자 정보 삭제(soft-delete)
+        SignupResponseDto responseDto = userService.deleteUser(userId);
+
+        // 성공 응답으로 200 OK와 사용자 ID 반환
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }
