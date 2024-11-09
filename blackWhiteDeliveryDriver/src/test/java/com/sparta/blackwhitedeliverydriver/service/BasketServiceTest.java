@@ -4,7 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import com.sparta.blackwhitedeliverydriver.dto.BasketResponse;
+import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
@@ -27,7 +27,7 @@ class BasketServiceTest {
     @DisplayName("장바구니 담기 성공")
     void addProductToBasket_success() {
         //given
-        BasketResponse request = BasketResponse.builder().userId(1L)
+        BasketAddRequestDto request = BasketAddRequestDto.builder().userId(1L)
                 .productId("f47ac10b-58cc-4372-a567-0e02b2c3d479")
                 .quantity(2)
                 .build();

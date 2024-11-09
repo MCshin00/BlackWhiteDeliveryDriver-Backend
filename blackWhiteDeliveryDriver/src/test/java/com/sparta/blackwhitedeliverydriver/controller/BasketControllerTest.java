@@ -3,11 +3,13 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.blackwhitedeliverydriver.dto.BasketResponse;
+import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
 import java.util.UUID;
@@ -31,12 +33,12 @@ class BasketControllerTest {
     @Autowired
     ObjectMapper mapper;
 
-    private static final String BASE_URL = "/api/v1";
+    private static final String BASE_URL = "";
 
     @Test
     @DisplayName("장바구니 담기")
     void addProductToBasket() throws Exception {
-        //give
+        //given
         Long userId = 1L;
         String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         int quantity = 2;
@@ -47,7 +49,7 @@ class BasketControllerTest {
                 .build());
 
         //then
-        String body = mapper.writeValueAsString(BasketResponse.builder()
+        String body = mapper.writeValueAsString(BasketAddRequestDto.builder()
                 .userId(userId)
                 .productId(productId)
                 .quantity(quantity)
@@ -56,6 +58,28 @@ class BasketControllerTest {
                         .content(body)
                         .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.basketId").exists());
+    }
+
+    @Test
+    @DisplayName("장바구니 빼기")
+    void removeProductFromBasket() throws Exception {
+        //given
+        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+
+        //when
+        when(basketService.removeProductFromBasket(any())).thenReturn(BasketResponseDto.builder()
+                .basketId(UUID.fromString("e623f3c2-4b79-4f3a-b876-9d1b5d47a283"))
+                .build());
+
+        //then
+        String body = mapper.writeValueAsString(BasketRemoveRequestDto.builder()
+                .basketId(UUID.fromString(basketId))
+                .build());
+        mvc.perform(put(BASE_URL+"/basket")
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.basketId").exists());
     }
 }
