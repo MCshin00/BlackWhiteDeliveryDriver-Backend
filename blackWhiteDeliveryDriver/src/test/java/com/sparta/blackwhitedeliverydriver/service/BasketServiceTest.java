@@ -11,6 +11,7 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import java.util.List;
@@ -111,5 +112,50 @@ class BasketServiceTest {
                 .productId(UUID.fromString(productId))
                 .quantity(quantity)
                 .build())), response);
+    }
+
+    @Test
+    @DisplayName("장바구니 수정 성공")
+    void updateBasket_success() {
+        //given
+        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        Integer quantity = 2;
+        BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
+                .basketId(UUID.fromString(basketId))
+                .quantity(quantity)
+                .build();
+        Basket basket = Basket.builder()
+                .basketId(UUID.fromString(basketId))
+                .productId(UUID.fromString(productId))
+                .quantity(quantity)
+                .build();
+
+        given(basketRepository.findById(any())).willReturn(Optional.ofNullable(basket));
+        given(basketRepository.save(any())).willReturn(basket);
+
+        //when
+        BasketResponseDto response = basketService.updateBasket(request);
+
+        //then
+        Assertions.assertEquals(UUID.fromString(basketId), response.getBasketId());
+    }
+
+    @Test
+    @DisplayName("장바구니 수정 실패1 : 장바구니가 존재하지 않는 경우")
+    void updateBasket_fail1() {
+        //given
+        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+        Integer quantity = 2;
+        BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
+                .basketId(UUID.fromString(basketId))
+                .quantity(quantity)
+                .build();
+
+        //when & then
+        when(basketRepository.findById(any())).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> {
+            basketService.updateBasket(request);
+        });
     }
 }

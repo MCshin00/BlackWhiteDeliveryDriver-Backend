@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
 import java.util.List;
 import java.util.UUID;
@@ -114,5 +115,30 @@ class BasketControllerTest {
         //then
         mvc.perform(get(BASE_URL + "/basket"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("장바구니 수정")
+    void updateBasket() throws Exception {
+        //given
+        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+        int quantity = 2;
+
+        //when
+        when(basketService.updateBasket(any())).thenReturn(BasketResponseDto.builder()
+                .basketId(UUID.fromString(basketId))
+                .build());
+
+        //then
+        String body = mapper.writeValueAsString(BasketUpdateRequestDto.builder()
+                .basketId(UUID.fromString(basketId))
+                .quantity(quantity)
+                .build());
+
+        mvc.perform(put(BASE_URL + "/basket")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.basketId").exists());
     }
 }
