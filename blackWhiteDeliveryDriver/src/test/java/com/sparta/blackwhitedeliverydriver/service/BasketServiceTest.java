@@ -55,12 +55,11 @@ class BasketServiceTest {
     @DisplayName("장바구니 빼기 성공")
     void removeProductFromBasket_success() {
         //given
-        BasketRemoveRequestDto request = BasketRemoveRequestDto.builder()
-                .basketId(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
-                .build();
+        String basketId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        String productId = "1e217cbf-e3ec-4e85-9f9b-42557c1dd079";
         Basket basket = Basket.builder()
-                .basketId(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
-                .productId(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
+                .basketId(UUID.fromString(basketId))
+                .productId(UUID.fromString(productId))
                 .quantity(2)
                 .build();
 
@@ -68,10 +67,10 @@ class BasketServiceTest {
 
         //when
         doNothing().when(basketRepository).delete(any()); //repository delete 건너뛰기
-        BasketResponseDto response = basketService.removeProductFromBasket(request);
+        BasketResponseDto response = basketService.removeProductFromBasket(basketId);
 
         //then
-        Assertions.assertEquals(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"), response.getBasketId());
+        Assertions.assertEquals(UUID.fromString(basketId), response.getBasketId());
     }
 
 
@@ -79,16 +78,14 @@ class BasketServiceTest {
     @DisplayName("장바구니 빼기 실패 : 장바구니 존재하지 않는 경우")
     void removeProductFromBasket_fail1() {
         //given
-        BasketRemoveRequestDto request = BasketRemoveRequestDto.builder()
-                .basketId(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
-                .build();
+        String basketId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
 
         //when
         when(basketRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
         assertThrows(IllegalArgumentException.class, () -> {
-            basketService.removeProductFromBasket(request);
+            basketService.removeProductFromBasket(basketId);
         });
     }
 

@@ -2,6 +2,7 @@ package com.sparta.blackwhitedeliverydriver.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -10,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
-import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
@@ -64,24 +64,37 @@ class BasketControllerTest {
 
     @Test
     @DisplayName("장바구니 빼기")
-    void removeProductFromBasket() throws Exception {
+    void removeProductFromBasket_success() throws Exception {
         //given
         String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
 
         //when
         when(basketService.removeProductFromBasket(any())).thenReturn(BasketResponseDto.builder()
-                .basketId(UUID.fromString("e623f3c2-4b79-4f3a-b876-9d1b5d47a283"))
+                .basketId(UUID.fromString(basketId))
                 .build());
 
         //then
-        String body = mapper.writeValueAsString(BasketRemoveRequestDto.builder()
-                .basketId(UUID.fromString(basketId))
-                .build());
-        mvc.perform(put(BASE_URL + "/basket")
-                        .content(body)
+        mvc.perform(delete(BASE_URL + "/basket/%s", basketId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.basketId").exists());
+    }
+
+    @Test
+    @DisplayName("장바구니 빼기 실패 : 파라미터가 없는 경우")
+    void removeProductFromBasket_fail() throws Exception {
+        //given
+        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+
+        //when
+        when(basketService.removeProductFromBasket(any())).thenReturn(BasketResponseDto.builder()
+                .basketId(UUID.fromString(basketId))
+                .build());
+
+        //then
+        mvc.perform(delete(BASE_URL + "/basket")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
@@ -93,10 +106,10 @@ class BasketControllerTest {
         Integer quantity = 2;
         //when
         when(basketService.getBaskets(any())).thenReturn(List.of(BasketGetResponseDto.builder()
-                        .basketId(UUID.fromString(basketId))
-                        .productId(UUID.fromString(productId))
-                        .quantity(quantity)
-                        .build()));
+                .basketId(UUID.fromString(basketId))
+                .productId(UUID.fromString(productId))
+                .quantity(quantity)
+                .build()));
 
         //then
         mvc.perform(get(BASE_URL + "/basket"))

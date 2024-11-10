@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,10 +27,11 @@ public class BasketService {
         return BasketResponseDto.from(basket);
     }
 
-    public BasketResponseDto removeProductFromBasket(BasketRemoveRequestDto request) {
+    public BasketResponseDto removeProductFromBasket(String basketId) {
+        UUID basketUUID = UUID.fromString(basketId);
         //유저 유효성 검사
         //장바구니 유효성 검사
-        Basket basket = basketRepository.findById(request.getBasketId()).orElseThrow(() ->
+        Basket basket = basketRepository.findById(basketUUID).orElseThrow(() ->
                 new IllegalArgumentException("장바구니가 존재하지 않습니다."));
 
         basketRepository.delete(basket);
