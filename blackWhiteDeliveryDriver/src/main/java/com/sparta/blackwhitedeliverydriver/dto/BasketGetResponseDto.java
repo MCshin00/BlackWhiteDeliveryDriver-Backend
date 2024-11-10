@@ -21,7 +21,7 @@ public class BasketGetResponseDto {
     public static BasketGetResponseDto from(Basket basket) {
         return BasketGetResponseDto
                 .builder()
-                .basketId(basket.getBasketId())
+                .basketId(basket.getId())
                 .productId(basket.getProductId())
                 .quantity(basket.getQuantity())
                 .build();

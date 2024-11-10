@@ -1,7 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.entity;
 
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
-import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,7 +20,7 @@ public class Basket {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID basketId;
+    private UUID id;
     private UUID productId; // 임시 컬럼
     private Integer quantity;
 
@@ -31,7 +30,7 @@ public class Basket {
 
     public static Basket from(BasketAddRequestDto requestDto) {
         return Basket.builder()
-                .productId(UUID.fromString(requestDto.getProductId()))
+                .productId(requestDto.getProductId())
                 .quantity(requestDto.getQuantity())
                 .build();
     }

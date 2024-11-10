@@ -44,16 +44,17 @@ class BasketControllerTest {
     void addProductToBasket() throws Exception {
         //given
         String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
         int quantity = 2;
 
         //when
         when(basketService.addProductToBasket(any())).thenReturn(BasketResponseDto.builder()
-                .basketId(UUID.fromString("e623f3c2-4b79-4f3a-b876-9d1b5d47a283"))
+                .basketId(UUID.fromString(basketId))
                 .build());
 
         //then
         String body = mapper.writeValueAsString(BasketAddRequestDto.builder()
-                .productId(productId)
+                .productId(UUID.fromString(productId))
                 .quantity(quantity)
                 .build());
         mvc.perform(post(BASE_URL + "/basket")

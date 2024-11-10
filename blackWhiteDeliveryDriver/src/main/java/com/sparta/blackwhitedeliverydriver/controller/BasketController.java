@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,7 +24,7 @@ public class BasketController {
     private final BasketService basketService;
 
     @PostMapping
-    public BasketResponseDto addProductToBasket(BasketAddRequestDto request) {
+    public BasketResponseDto addProductToBasket(@RequestBody BasketAddRequestDto request) {
         return basketService.addProductToBasket(request);
     }
 
@@ -38,7 +39,7 @@ public class BasketController {
     }
 
     @PutMapping
-    public BasketResponseDto updateBasket(BasketUpdateRequestDto request) {
+    public BasketResponseDto updateBasket(@RequestBody BasketUpdateRequestDto request) {
         return basketService.updateBasket(request);
     }
 }

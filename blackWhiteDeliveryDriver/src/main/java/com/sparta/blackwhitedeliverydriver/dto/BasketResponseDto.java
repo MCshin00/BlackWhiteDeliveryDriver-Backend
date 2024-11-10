@@ -15,6 +15,6 @@ public class BasketResponseDto {
     private UUID basketId;
 
     public static BasketResponseDto from(Basket basket) {
-        return BasketResponseDto.builder().basketId(basket.getBasketId()).build();
+        return BasketResponseDto.builder().basketId(basket.getId()).build();
     }
 }

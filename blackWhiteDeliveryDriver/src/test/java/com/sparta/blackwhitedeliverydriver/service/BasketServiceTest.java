@@ -35,21 +35,24 @@ class BasketServiceTest {
     @DisplayName("장바구니 담기 성공")
     void addProductToBasket_success() {
         //given
+        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        String basketId = "7c9f6b72-4d8e-49b0-9b6e-7fc8f0e905d9";
         BasketAddRequestDto request = BasketAddRequestDto.builder()
-                .productId("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+                .productId(UUID.fromString(productId))
                 .quantity(2)
                 .build();
 
-        given(basketRepository.save(any())).willReturn(
-                Basket.builder().basketId(UUID.fromString("7c9f6b72-4d8e-49b0-9b6e-7fc8f0e905d9"))
-                        .productId(UUID.fromString(request.getProductId()))
-                        .quantity(request.getQuantity()).build());
+        given(basketRepository.save(any())).willReturn(Basket.builder()
+                .id(UUID.fromString(basketId))
+                .productId(request.getProductId())
+                .quantity(request.getQuantity())
+                .build());
 
         //when
         BasketResponseDto response = basketService.addProductToBasket(request);
 
         //then
-        Assertions.assertEquals(UUID.fromString("7c9f6b72-4d8e-49b0-9b6e-7fc8f0e905d9"), response.getBasketId());
+        Assertions.assertEquals(UUID.fromString(basketId), response.getBasketId());
     }
 
     @Test
@@ -59,7 +62,7 @@ class BasketServiceTest {
         String basketId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         String productId = "1e217cbf-e3ec-4e85-9f9b-42557c1dd079";
         Basket basket = Basket.builder()
-                .basketId(UUID.fromString(basketId))
+                .id(UUID.fromString(basketId))
                 .productId(UUID.fromString(productId))
                 .quantity(2)
                 .build();
@@ -100,7 +103,7 @@ class BasketServiceTest {
         Basket basket = Basket.builder()
                 .quantity(quantity)
                 .productId(UUID.fromString(productId))
-                .basketId(UUID.fromString(basketId))
+                .id(UUID.fromString(basketId))
                 .build();
         //when
         when(basketRepository.findAll()).thenReturn(List.of(basket));
@@ -126,7 +129,7 @@ class BasketServiceTest {
                 .quantity(quantity)
                 .build();
         Basket basket = Basket.builder()
-                .basketId(UUID.fromString(basketId))
+                .id(UUID.fromString(basketId))
                 .productId(UUID.fromString(productId))
                 .quantity(quantity)
                 .build();
