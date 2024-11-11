@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddressResponseDto {
+    private Long id;
+
     private String zipNum;
 
     private String city;

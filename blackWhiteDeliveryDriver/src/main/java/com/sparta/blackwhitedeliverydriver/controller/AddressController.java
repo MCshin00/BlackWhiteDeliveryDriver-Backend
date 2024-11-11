@@ -38,9 +38,11 @@ public class AddressController {
     }
 
     @PutMapping("/{addressId}")
-    public ResponseEntity<?> updateAddress(@Valid @RequestBody AddressRequestDto requestDto, @PathVariable Long addressId) {
+    public ResponseEntity<?> updateAddress(@Valid @RequestBody AddressRequestDto requestDto,
+                                           @PathVariable Long addressId,
+                                           @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 수정 처리
-        addressService.updateAddress(requestDto, addressId);
+        addressService.updateAddress(requestDto, addressId, userDetails.getUser());
 
         // 성공 응답으로 200 OK와 메세지 반환
         return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");

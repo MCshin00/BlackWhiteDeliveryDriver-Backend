@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,16 +24,16 @@ public class AddressService {
 
     public void createAddress(@Valid AddressRequestDto requestDto,String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NullPointerException("사용자를 찾을 수 없습니다."));
 
         Address address = new Address(requestDto, user);
         addressRepository.save(address);
     }
 
     @Transactional
-    public void updateAddress(@Valid AddressRequestDto requestDto, Long addressId) {
-        Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 주소를 찾을 수 없습니다."));
+    public void updateAddress(@Valid AddressRequestDto requestDto, Long addressId, User user) {
+        Address address = addressRepository.findByIdAndUser(addressId, user)
+                .orElseThrow(() -> new AccessDeniedException("접근 권한이 없습니다."));
 
         address.setZipNum(requestDto.getZipNum());
         address.setCity(requestDto.getCity());
