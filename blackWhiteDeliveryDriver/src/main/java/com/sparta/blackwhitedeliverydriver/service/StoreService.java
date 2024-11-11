@@ -19,21 +19,7 @@ public class StoreService {
         // 점포 중복확인 (이름, 전화번호)
 
         // 점포 등록
-        Store store = new Store(
-                requestDto.getStoreName(),
-                requestDto.getPhoneNumber(),
-                requestDto.getOpenTime(),
-                requestDto.getCloseTime(),
-                "imgUrl",
-                requestDto.getZipNum(),
-                requestDto.getCity(),
-                requestDto.getDistrict(),
-                requestDto.getStreetName(),
-                requestDto.getStreetNumber(),
-                requestDto.getDetailAddr(),
-                requestDto.getStoreIntro()
-                );
-        storeRepository.save(store);
+        storeRepository.save(new Store(requestDto));
 
         // 점포 조회
         Optional<Store> res = Optional.ofNullable(

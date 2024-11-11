@@ -45,30 +45,19 @@ public class Store extends StoreTimestamped {
     private String storeIntro;
     private Boolean isPublic = false; // 매장 승인 여부
 
-    public Store(String storeName,
-                 String phoneNumber,
-                 LocalTime openTime,
-                 LocalTime closeTime,
-                 String imgUrl,
-                 String zipNum,
-                 String city,
-                 String district,
-                 String streetName,
-                 String streetNumber,
-                 String detailAddr,
-                 String storeIntro) {
-        this.storeName = storeName;
-        this.phoneNumber = phoneNumber;
-        this.openTime = openTime;
-        this.closeTime = closeTime;
-        this.imgUrl = imgUrl;
-        this.zipNum = zipNum;
-        this.city = city;
-        this.district = district;
-        this.streetName = streetName;
-        this.streetNumber = streetNumber;
-        this.detailAddr = detailAddr;
-        this.storeIntro = storeIntro;
+    public Store(StoreRequestDto requestDto) {
+        this.storeName = requestDto.getStoreName();
+        this.phoneNumber = requestDto.getPhoneNumber();
+        this.openTime = requestDto.getOpenTime();
+        this.closeTime = requestDto.getCloseTime();
+        this.imgUrl = requestDto.getImgUrl();
+        this.zipNum = requestDto.getZipNum();
+        this.city = requestDto.getCity();
+        this.district = requestDto.getDistrict();
+        this.streetName = requestDto.getStreetName();
+        this.streetNumber = requestDto.getStreetNumber();
+        this.detailAddr = requestDto.getDetailAddr();
+        this.storeIntro = requestDto.getStoreIntro();
         this.isPublic = true;
         this.rating = 0;
         this.reviewCnt = 0;
