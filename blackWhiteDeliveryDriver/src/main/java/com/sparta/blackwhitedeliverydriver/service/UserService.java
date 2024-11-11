@@ -1,7 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.SignupRequestDto;
-import com.sparta.blackwhitedeliverydriver.dto.UserIdResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.UsernameResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.UpdateUserRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.UserResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.User;
@@ -24,7 +24,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuditorAware<String> auditorAware;
 
-    public UserIdResponseDto signup(@Valid SignupRequestDto requestDto) {
+    public UsernameResponseDto signup(@Valid SignupRequestDto requestDto) {
         String username = requestDto.getUsername();
         String password = passwordEncoder.encode(requestDto.getPassword());
         String email = requestDto.getEmail();
@@ -35,11 +35,18 @@ public class UserService {
         checkEmail(email);
         checkPhoneNumber(phoneNumber);
 
-        User user = new User(username, password, email, phoneNumber, role);
+        User user = User.builder()
+                .username(username)
+                .password(password)
+                .email(email)
+                .phoneNumber(phoneNumber)
+                .role(role)
+                .build();
+
         user.setCreatedBy(username);
         User savedUser = userRepository.save(user);  // User 엔티티 저장
 
-        return new UserIdResponseDto(savedUser.getId());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
+        return new UsernameResponseDto(savedUser.getUsername());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
     }
 
     public UserResponseDto getUserInfo(String username) {
@@ -50,7 +57,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserIdResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, Long userId) {
+    public UsernameResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -63,11 +70,11 @@ public class UserService {
 
         userRepository.save(user);
 
-        return new UserIdResponseDto(user.getId());
+        return new UsernameResponseDto(user.getUsername());
     }
 
     @Transactional
-    public UserIdResponseDto deleteUser(Long userId) {
+    public UsernameResponseDto deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -80,7 +87,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        return new UserIdResponseDto(user.getId());
+        return new UsernameResponseDto(user.getUsername());
     }
 
     private void checkUsername(String username) {

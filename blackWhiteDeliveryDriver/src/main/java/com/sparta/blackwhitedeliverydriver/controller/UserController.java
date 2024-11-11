@@ -1,7 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
 import com.sparta.blackwhitedeliverydriver.dto.SignupRequestDto;
-import com.sparta.blackwhitedeliverydriver.dto.UserIdResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.UsernameResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.UpdateUserRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.UserResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
@@ -34,7 +34,7 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequestDto requestDto) {
         // 사용자 등록 처리
-        UserIdResponseDto responseDto = userService.signup(requestDto);
+        UsernameResponseDto responseDto = userService.signup(requestDto);
 
         // 성공 응답으로 201 Created와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
@@ -52,7 +52,7 @@ public class UserController {
     @PutMapping("/")
     public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 업데이트
-        UserIdResponseDto responseDto = userService.updateUser(requestDto, userDetails.getId());
+        UsernameResponseDto responseDto = userService.updateUser(requestDto, userDetails.getId());
 
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -62,7 +62,7 @@ public class UserController {
     @PutMapping("/{userId}")
     public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @PathVariable Long userId) {
         // 사용자 정보 업데이트
-        UserIdResponseDto responseDto = userService.updateUser(requestDto, userId);
+        UsernameResponseDto responseDto = userService.updateUser(requestDto, userId);
 
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -71,7 +71,7 @@ public class UserController {
     @DeleteMapping("/")
     public ResponseEntity<?> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 삭제(soft-delete)
-        UserIdResponseDto responseDto = userService.deleteUser(userDetails.getId());
+        UsernameResponseDto responseDto = userService.deleteUser(userDetails.getId());
 
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -81,7 +81,7 @@ public class UserController {
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
         // 사용자 정보 삭제(soft-delete)
-        UserIdResponseDto responseDto = userService.deleteUser(userId);
+        UsernameResponseDto responseDto = userService.deleteUser(userId);
 
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
