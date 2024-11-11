@@ -11,6 +11,7 @@ public class StoreRequestDto {
     private String phoneNumber;
     private LocalTime openTime;
     private LocalTime closeTime;
+    private String imgUrl;
     private String zipNum;
     private String city;
     private String district;

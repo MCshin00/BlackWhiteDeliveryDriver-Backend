@@ -41,4 +41,16 @@ public class StoreService {
 
         return res.get().getStoreId();
     }
+
+    @Transactional
+    public UUID updateStore(UUID storeId, StoreRequestDto requestDto) {
+        // 점포 조회
+        Store store = storeRepository.findById(storeId).orElseThrow(
+                () -> new NullPointerException(requestDto.getStoreName() + "은(는) 존재하지 않는 점포입니다.")
+        );
+
+        store.update(requestDto);
+
+        return store.getStoreId();
+    }
 }

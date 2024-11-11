@@ -73,4 +73,19 @@ public class Store extends StoreTimestamped {
         this.rating = 0;
         this.reviewCnt = 0;
     }
+
+    public void update(StoreRequestDto requestDto) {
+        this.storeName = requestDto.getStoreName();
+        this.phoneNumber = requestDto.getPhoneNumber();
+        this.openTime = requestDto.getOpenTime();
+        this.closeTime = requestDto.getCloseTime();
+        this.imgUrl = requestDto.getImgUrl();
+        this.zipNum = requestDto.getZipNum();
+        this.city = requestDto.getCity();
+        this.district = requestDto.getDistrict();
+        this.streetName = requestDto.getStreetName();
+        this.streetNumber = requestDto.getStreetNumber();
+        this.detailAddr = requestDto.getDetailAddr();
+        this.storeIntro = requestDto.getStoreIntro();
+    }
 }
