@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,6 +61,16 @@ public class AddressController {
     public ResponseEntity<?> setCurrentAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         addressService.setCurrentAddress(addressId, userDetails.getUser());
 
+        return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");
+    }
+
+    @DeleteMapping("/{addressId}")
+    @PutMapping("/{addressId}")
+    public ResponseEntity<?> deleteAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 주소 삭제 처리(soft-delete)
+        addressService.deleteAddress(addressId, userDetails.getUser());
+
+        // 성공 응답으로 200 OK와 메세지 반환
         return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");
     }
 }

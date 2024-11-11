@@ -5,7 +5,9 @@ import com.sparta.blackwhitedeliverydriver.dto.AddressResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Address;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.repository.AddressRepository;
+import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -64,5 +66,20 @@ public class AddressService {
         }
 
         user.setCurrentAddress(address);
+    }
+
+    @Transactional
+    public void deleteAddress(Long addressId, User user) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new NullPointerException("해당 주소가 존재하지 않습니다."));
+
+        if (!address.getUser().equals(user)) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        address.setDeletedBy(user.getUsername());
+        address.setDeletedDate(LocalDateTime.now());
+
+        addressRepository.save(address);
     }
 }
