@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AddressService {
 
     private final AddressRepository addressRepository;
+    private final UserRepository userRepository;
 
     public void createAddress(@Valid AddressRequestDto requestDto, User user) {
         Address address = new Address(requestDto, user);
@@ -66,6 +67,7 @@ public class AddressService {
         }
 
         user.setCurrentAddress(address);
+        userRepository.save(user);
     }
 
     @Transactional
