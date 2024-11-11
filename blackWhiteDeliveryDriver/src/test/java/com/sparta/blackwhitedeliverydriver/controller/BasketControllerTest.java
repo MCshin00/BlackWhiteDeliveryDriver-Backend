@@ -37,7 +37,7 @@ class BasketControllerTest {
     @Autowired
     ObjectMapper mapper;
 
-    private static final String BASE_URL = "";
+    private static final String BASE_URL = "/api/v1";
 
     @Test
     @DisplayName("장바구니 담기")
