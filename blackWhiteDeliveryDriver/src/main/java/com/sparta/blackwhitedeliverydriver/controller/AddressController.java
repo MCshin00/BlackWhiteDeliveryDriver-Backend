@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
+import com.sparta.blackwhitedeliverydriver.dto.AddressIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.AddressRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.AddressResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
@@ -31,10 +32,10 @@ public class AddressController {
     @PostMapping("/")
     public ResponseEntity<?> createAddress(@Valid @RequestBody AddressRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 등록 처리
-        addressService.createAddress(requestDto, userDetails.getUser());
+        AddressIdResponseDto addressIdResponseDto = addressService.createAddress(requestDto, userDetails.getUser());
 
-        // 성공 응답으로 201 Created와 메세지 반환
-        return ResponseEntity.status(HttpStatus.CREATED).body("status : 201 CREATED");
+        // 성공 응답으로 201 Created와 addressIdResponseDto 반환
+        return ResponseEntity.status(HttpStatus.CREATED).body(addressIdResponseDto);
     }
 
     @PutMapping("/{addressId}")
@@ -42,10 +43,10 @@ public class AddressController {
                                            @PathVariable Long addressId,
                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 수정 처리
-        addressService.updateAddress(requestDto, addressId, userDetails.getUser());
+        AddressIdResponseDto addressIdResponseDto = addressService.updateAddress(requestDto, addressId, userDetails.getUser());
 
-        // 성공 응답으로 200 OK와 메세지 반환
-        return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");
+        // 성공 응답으로 200 OK와 addressIdResponseDto 반환
+        return ResponseEntity.status(HttpStatus.OK).body(addressIdResponseDto);
     }
 
     @GetMapping("/")
@@ -59,18 +60,20 @@ public class AddressController {
 
     @PutMapping("/{addressId}/current")
     public ResponseEntity<?> setCurrentAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        addressService.setCurrentAddress(addressId, userDetails.getUser());
+        // 사용자의 현재(기본) 배송지를 지정한다
+        AddressIdResponseDto addressIdResponseDto = addressService.setCurrentAddress(addressId, userDetails.getUser());
 
-        return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");
+        // 성공 응답으로 200 OK와 addressIdResponseDto 반환
+        return ResponseEntity.status(HttpStatus.OK).body(addressIdResponseDto);
     }
 
     @DeleteMapping("/{addressId}")
     @PutMapping("/{addressId}")
     public ResponseEntity<?> deleteAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 삭제 처리(soft-delete)
-        addressService.deleteAddress(addressId, userDetails.getUser());
+        AddressIdResponseDto addressIdResponseDto = addressService.deleteAddress(addressId, userDetails.getUser());
 
-        // 성공 응답으로 200 OK와 메세지 반환
-        return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");
+        // 성공 응답으로 200 OK와 addressIdResponseDto 반환
+        return ResponseEntity.status(HttpStatus.OK).body(addressIdResponseDto);
     }
 }

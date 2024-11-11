@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.AddressIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.AddressRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.AddressResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Address;
@@ -23,13 +24,15 @@ public class AddressService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
 
-    public void createAddress(@Valid AddressRequestDto requestDto, User user) {
+    public AddressIdResponseDto createAddress(@Valid AddressRequestDto requestDto, User user) {
         Address address = new Address(requestDto, user);
         addressRepository.save(address);
+
+        return new AddressIdResponseDto(address.getId());
     }
 
     @Transactional
-    public void updateAddress(@Valid AddressRequestDto requestDto, Long addressId, User user) {
+    public AddressIdResponseDto updateAddress(@Valid AddressRequestDto requestDto, Long addressId, User user) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -45,6 +48,8 @@ public class AddressService {
         address.setDetailAddr(requestDto.getDetailAddr());
 
         addressRepository.save(address);
+
+        return new AddressIdResponseDto(address.getId());
     }
 
     public List<AddressResponseDto> getAllAddresses(User user) {
@@ -59,7 +64,7 @@ public class AddressService {
     }
 
     @Transactional
-    public void setCurrentAddress(Long addressId, User user) {
+    public AddressIdResponseDto setCurrentAddress(Long addressId, User user) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -69,10 +74,12 @@ public class AddressService {
 
         user.setCurrentAddress(address);
         userRepository.save(user);
+
+        return new AddressIdResponseDto(address.getId());
     }
 
     @Transactional
-    public void deleteAddress(Long addressId, User user) {
+    public AddressIdResponseDto deleteAddress(Long addressId, User user) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -84,5 +91,7 @@ public class AddressService {
         address.setDeletedDate(LocalDateTime.now());
 
         addressRepository.save(address);
+
+        return new AddressIdResponseDto(address.getId());
     }
 }
