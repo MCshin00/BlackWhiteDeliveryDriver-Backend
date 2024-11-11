@@ -9,13 +9,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.filter.RequestContextFilter;
 
 @Service
 @RequiredArgsConstructor
 public class StoreService {
     private final StoreRepository storeRepository;
-    private final RequestContextFilter requestContextFilter;
 
     public UUID createStore(@Valid StoreRequestDto requestDto) {
         // 점포 중복확인 (이름, 전화번호)
