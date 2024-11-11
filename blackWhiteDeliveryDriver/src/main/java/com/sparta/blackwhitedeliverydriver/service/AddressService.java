@@ -4,6 +4,7 @@ import com.sparta.blackwhitedeliverydriver.dto.AddressRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.AddressResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Address;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.AddressRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -30,10 +31,10 @@ public class AddressService {
     @Transactional
     public void updateAddress(@Valid AddressRequestDto requestDto, Long addressId, User user) {
         Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new NullPointerException("해당 주소가 존재하지 않습니다."));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
         if (!address.getUser().equals(user)) {
-            throw new AccessDeniedException("접근 권한이 없습니다.");
+            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
         address.setZipNum(requestDto.getZipNum());
@@ -60,10 +61,10 @@ public class AddressService {
     @Transactional
     public void setCurrentAddress(Long addressId, User user) {
         Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new NullPointerException("해당 주소가 존재하지 않습니다."));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
         if (!address.getUser().equals(user)) {
-            throw new AccessDeniedException("접근 권한이 없습니다.");
+            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
         user.setCurrentAddress(address);
@@ -73,10 +74,10 @@ public class AddressService {
     @Transactional
     public void deleteAddress(Long addressId, User user) {
         Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new NullPointerException("해당 주소가 존재하지 않습니다."));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
         if (!address.getUser().equals(user)) {
-            throw new AccessDeniedException("접근 권한이 없습니다.");
+            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
         address.setDeletedBy(user.getUsername());
