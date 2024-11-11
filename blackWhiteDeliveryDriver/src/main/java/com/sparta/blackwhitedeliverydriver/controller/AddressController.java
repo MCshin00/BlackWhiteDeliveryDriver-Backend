@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,5 +54,12 @@ public class AddressController {
 
         // 성공 응답으로 200 OK와 AddressResponseDto 리스트 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressResponseDtos);
+    }
+
+    @PutMapping("/{addressId}/current")
+    public ResponseEntity<?> setCurrentAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        addressService.setCurrentAddress(addressId, userDetails.getUsername());
+
+        return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");
     }
 }

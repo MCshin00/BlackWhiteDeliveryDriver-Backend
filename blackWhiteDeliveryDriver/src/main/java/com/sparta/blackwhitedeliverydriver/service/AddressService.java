@@ -57,4 +57,19 @@ public class AddressService {
 
         return addressResponseDtos;
     }
+
+    @Transactional
+    public void setCurrentAddress(Long addressId, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new NullPointerException("해당 주소가 존재하지 않습니다."));
+
+        if (!address.getUser().equals(user)) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        user.setCurrentAddress(address);
+    }
 }
