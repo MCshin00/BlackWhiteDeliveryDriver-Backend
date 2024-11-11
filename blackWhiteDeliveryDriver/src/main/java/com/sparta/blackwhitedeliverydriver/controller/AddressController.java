@@ -30,7 +30,7 @@ public class AddressController {
     @PostMapping("/")
     public ResponseEntity<?> createAddress(@Valid @RequestBody AddressRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 등록 처리
-        addressService.createAddress(requestDto, userDetails.getUsername());
+        addressService.createAddress(requestDto, userDetails.getUser());
 
         // 성공 응답으로 201 Created와 메세지 반환
         return ResponseEntity.status(HttpStatus.CREATED).body("status : 201 CREATED");
@@ -50,7 +50,7 @@ public class AddressController {
     @GetMapping("/")
     public ResponseEntity<?> getAllAddress(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 모든 주소를 가져온다
-        List<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUsername());
+        List<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUser());
 
         // 성공 응답으로 200 OK와 AddressResponseDto 리스트 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressResponseDtos);
@@ -58,7 +58,7 @@ public class AddressController {
 
     @PutMapping("/{addressId}/current")
     public ResponseEntity<?> setCurrentAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        addressService.setCurrentAddress(addressId, userDetails.getUsername());
+        addressService.setCurrentAddress(addressId, userDetails.getUser());
 
         return ResponseEntity.status(HttpStatus.OK).body("status : 200 OK");
     }
