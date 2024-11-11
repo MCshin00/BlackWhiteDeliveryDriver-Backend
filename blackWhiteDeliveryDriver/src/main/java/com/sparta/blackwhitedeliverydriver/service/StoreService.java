@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.filter.RequestContextFilter;
 
 @Service
@@ -16,7 +17,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final RequestContextFilter requestContextFilter;
 
-    public UUID save(@Valid StoreRequestDto requestDto) {
+    public UUID createStore(@Valid StoreRequestDto requestDto) {
         // 점포 중복확인 (이름, 전화번호)
 
         // 점포 등록
@@ -37,7 +38,11 @@ public class StoreService {
         storeRepository.save(store);
 
         // 점포 조회
-        Optional<Store> res = storeRepository.findByStoreNameAndPhoneNumber(requestDto.getStoreName(), requestDto.getPhoneNumber());
+        Optional<Store> res = Optional.ofNullable(
+                storeRepository.findByStoreNameAndPhoneNumber(requestDto.getStoreName(), requestDto.getPhoneNumber())
+                        .orElseThrow(
+                                () -> new IllegalArgumentException("점포를 찾을 수 없습니다.")
+                        ));
 
         return res.get().getStoreId();
     }

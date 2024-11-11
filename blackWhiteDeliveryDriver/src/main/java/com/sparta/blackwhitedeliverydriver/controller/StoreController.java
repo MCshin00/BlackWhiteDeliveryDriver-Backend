@@ -23,8 +23,10 @@ public class StoreController {
 
     @PostMapping("/")
     public ResponseEntity<?> createStore(@Valid @RequestBody StoreRequestDto requestDto) {
+        // OWNER인지 확인
+
         // 점포 등록
-        UUID storeId = storeService.save(requestDto);
+        UUID storeId = storeService.createStore(requestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(storeId);
     }
