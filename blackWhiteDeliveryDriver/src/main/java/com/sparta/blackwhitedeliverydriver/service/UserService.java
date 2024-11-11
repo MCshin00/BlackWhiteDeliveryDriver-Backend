@@ -6,6 +6,7 @@ import com.sparta.blackwhitedeliverydriver.dto.UserResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.UsernameResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
+import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -60,7 +61,7 @@ public class UserService {
 
     public UserResponseDto getUserInfo(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         return new UserResponseDto(user);
     }
@@ -68,7 +69,7 @@ public class UserService {
     @Transactional
     public UsernameResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         user.setEmail(requestDto.getEmail());
@@ -85,11 +86,11 @@ public class UserService {
     @Transactional
     public UsernameResponseDto deleteUser(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         // 삭제를 수행한 사용자의 username을 가져옵니다.
         String deletedBy = auditorAware.getCurrentAuditor()
-                .orElseThrow(() -> new IllegalStateException("로그인 정보 없음"));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.LOGIN_NOT_FOUND.getMessage()));
 
         user.setDeletedBy(deletedBy);
         user.setDeletedDate(LocalDateTime.now());
@@ -102,27 +103,27 @@ public class UserService {
     private void checkUsername(String username) {
         Optional<User> checkUsername = userRepository.findByUsername(username);
         if (checkUsername.isPresent()) {
-            throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
+            throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_USERNAME.getMessage());
         }
     }
 
     private void checkEmail(String email) {
         Optional<User> checkEmail = userRepository.findByEmail(email);
         if (checkEmail.isPresent()) {
-            throw new IllegalArgumentException("중복된 이메일이 존재합니다.");
+            throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_EMAIL.getMessage());
         }
     }
 
     private void checkPhoneNumber(String phoneNumber) {
         Optional<User> checkPhoneNumber = userRepository.findByPhoneNumber(phoneNumber);
         if (checkPhoneNumber.isPresent()) {
-            throw new IllegalArgumentException("중복된 전화번호가 존재합니다.");
+            throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_PHONENUMBER.getMessage());
         }
     }
 
     private void checkRole(UserRoleEnum role) {
         if (role != UserRoleEnum.CUSTOMER && role != UserRoleEnum.OWNER) {
-            throw new IllegalArgumentException("일반 사용자는 CUSTOMER 또는 OWNER로만 가입할 수 있습니다.");
+            throw new IllegalArgumentException(ExceptionMessage.NOT_ALLOEWD_ROLE.getMessage());
         }
     }
 

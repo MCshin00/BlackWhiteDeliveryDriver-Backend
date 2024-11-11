@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<RestApiException> handleAccessDeniedException() {
         RestApiException restApiException = new RestApiException(
-                "접근 권한이 없습니다.",  // 에러 메시지
+                ExceptionMessage.NOT_ALLOWED_API.getMessage(),  // 에러 메시지
                 HttpStatus.FORBIDDEN.value()  // 상태 코드 (403)
         );
         return new ResponseEntity<>(restApiException, HttpStatus.FORBIDDEN);

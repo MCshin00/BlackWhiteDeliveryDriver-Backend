@@ -3,6 +3,7 @@ package com.sparta.blackwhitedeliverydriver.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.blackwhitedeliverydriver.dto.LoginRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
+import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.jwt.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,12 +29,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         if (!request.getMethod().equals(HttpMethod.POST.name())) {
-            jwtExceptionHandler(response, "로그인은 POST 메서드만 허용됩니다.", HttpServletResponse.SC_FORBIDDEN);
+            jwtExceptionHandler(response, ExceptionMessage.NOT_ALLOWED_METHOD.getMessage(), HttpServletResponse.SC_FORBIDDEN);
             return null;
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            jwtExceptionHandler(response, "이미 로그인된 사용자입니다.", HttpServletResponse.SC_FORBIDDEN);
+            jwtExceptionHandler(response, ExceptionMessage.ALREADY_LOGGED_IN.getMessage(), HttpServletResponse.SC_FORBIDDEN);
             return null;
         }
 
