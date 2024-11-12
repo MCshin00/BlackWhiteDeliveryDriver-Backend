@@ -47,6 +47,7 @@ public class StoreService {
         return store.getStoreId();
     }
 
+    @Transactional(readOnly = true)
     public List<StoreResponseDto> getStores() {
         return storeRepository.findAll().stream().map(StoreResponseDto::new).toList();
     }
