@@ -9,11 +9,13 @@ import static org.mockito.Mockito.when;
 
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
-import com.sparta.blackwhitedeliverydriver.dto.BasketRemoveRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
+import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,34 +27,63 @@ import org.junit.jupiter.api.Test;
 class BasketServiceTest {
     BasketService basketService;
     BasketRepository basketRepository = mock(BasketRepository.class);
+    UserRepository userRepository = mock(UserRepository.class);
 
     @BeforeEach
     public void setUp() {
-        basketService = new BasketService(basketRepository);
+        basketService = new BasketService(basketRepository, userRepository);
     }
 
     @Test
     @DisplayName("장바구니 담기 성공")
     void addProductToBasket_success() {
         //given
+        String username = "user1";
         String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         String basketId = "7c9f6b72-4d8e-49b0-9b6e-7fc8f0e905d9";
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(UUID.fromString(productId))
                 .quantity(2)
                 .build();
-
-        given(basketRepository.save(any())).willReturn(Basket.builder()
+        Basket basket = Basket.builder()
                 .id(UUID.fromString(basketId))
                 .productId(request.getProductId())
                 .quantity(request.getQuantity())
-                .build());
+                .build();
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username("user1")
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+
+        given(basketRepository.save(any())).willReturn(basket);
 
         //when
-        BasketResponseDto response = basketService.addProductToBasket(request);
+        BasketResponseDto response = basketService.addProductToBasket(username, request);
 
         //then
         Assertions.assertEquals(UUID.fromString(basketId), response.getBasketId());
+    }
+
+    @Test
+    @DisplayName("장바구니 담기 실패 : 유저가 유효하지 않는 경우")
+    void addProductToBasket_fail1() {
+        //given
+        String username = "user1";
+        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(UUID.fromString(productId))
+                .quantity(2)
+                .build();
+
+        //when
+        when(userRepository.findById(any())).thenReturn(Optional.empty());
+
+        //when & then
+        assertThrows(NullPointerException.class, () -> {
+            basketService.addProductToBasket(username, request);
+        });
     }
 
     @Test

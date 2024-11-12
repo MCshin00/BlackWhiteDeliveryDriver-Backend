@@ -5,7 +5,10 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
+import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,13 +21,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class BasketService {
 
     private final BasketRepository basketRepository;
+    private final UserRepository userRepository;
 
-    public BasketResponseDto addProductToBasket(BasketAddRequestDto request) {
-        // 유저가 유효한지
-        // 상품이 유효한지
-        // 수량이 0개 이상인지 100개 미만인지
-        // 같은 지점에서 담은 상품인지
-        Basket basket = basketRepository.save(Basket.from(request));
+    public BasketResponseDto addProductToBasket(String username, BasketAddRequestDto request) {
+        // 유저가 유효성 체크
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        // 상품이 유효성, 중복 체크
+        // 같은 지점에서 담은 상품인지 체크
+
+        Basket basket = basketRepository.save(Basket.from(user, request));
         return BasketResponseDto.from(basket);
     }
 
@@ -57,5 +64,9 @@ public class BasketService {
         basketRepository.save(basket);
 
         return BasketResponseDto.from(basket);
+    }
+
+    private boolean isValidQuantity(int quantity){
+        return quantity >= 0 && quantity < 100;
     }
 }
