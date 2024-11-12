@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StoreService {
     private final StoreRepository storeRepository;
 
+    @Transactional
     public UUID createStore(@Valid StoreRequestDto requestDto) {
         // 점포 중복확인 (이름, 전화번호)
 
