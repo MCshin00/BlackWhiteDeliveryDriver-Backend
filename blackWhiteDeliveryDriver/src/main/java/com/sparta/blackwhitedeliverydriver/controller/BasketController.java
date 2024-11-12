@@ -60,8 +60,13 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDtoList);
     }
 
+    @Secured({"ROLE_CUSTOMER"})
     @PutMapping
-    public BasketResponseDto updateBasket(@RequestBody BasketUpdateRequestDto request) {
-        return basketService.updateBasket(request);
+    public ResponseEntity<?> updateBasket(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                          @RequestBody BasketUpdateRequestDto request) {
+        //장바구니 수정
+        BasketResponseDto response = basketService.updateBasket(userDetails.getUsername(), request);
+        //200 응답
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

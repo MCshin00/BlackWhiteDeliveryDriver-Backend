@@ -60,11 +60,15 @@ public class BasketService {
     }
 
     @Transactional
-    public BasketResponseDto updateBasket(BasketUpdateRequestDto request) {
+    public BasketResponseDto updateBasket(String username, BasketUpdateRequestDto request) {
         //유저 유효성 검사
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         //장바구니 유효성 검사
         Basket basket = basketRepository.findById(request.getBasketId()).orElseThrow(() ->
-                new IllegalArgumentException("장바구니가 존재하지 않습니다."));
+                new NullPointerException(ExceptionMessage.BASKET_NOT_FOUND.getMessage()));
+        //장바구니 유저와 api 호출 유저 체크
+        checkBasketUser(user, basket);
 
         basket.updateBasketOfQuantity(request.getQuantity());
         basketRepository.save(basket);
@@ -73,7 +77,7 @@ public class BasketService {
     }
 
     private void checkBasketUser(User user, Basket basket) {
-        if(!user.getUsername().equals(basket.getUser().getUsername())){
+        if (!user.getUsername().equals(basket.getUser().getUsername())) {
             throw new IllegalArgumentException(ExceptionMessage.BASKET_USER_NOT_EQUALS.getMessage());
         }
     }

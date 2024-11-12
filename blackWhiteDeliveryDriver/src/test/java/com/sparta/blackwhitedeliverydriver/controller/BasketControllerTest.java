@@ -111,13 +111,14 @@ class BasketControllerTest {
 
     @Test
     @DisplayName("장바구니 수정")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
     void updateBasket() throws Exception {
         //given
         String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
         int quantity = 2;
 
         //when
-        when(basketService.updateBasket(any())).thenReturn(BasketResponseDto.builder()
+        when(basketService.updateBasket(any(), any())).thenReturn(BasketResponseDto.builder()
                 .basketId(UUID.fromString(basketId))
                 .build());
 
@@ -127,10 +128,11 @@ class BasketControllerTest {
                 .quantity(quantity)
                 .build());
 
-        mvc.perform(put(BASE_URL + "/basket")
+        mvc.perform(put(BASE_URL + "/baskets")
                         .content(body)
                         .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(status().isOk())
+                        .with(csrf()))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.basketId").exists());
     }
 }
