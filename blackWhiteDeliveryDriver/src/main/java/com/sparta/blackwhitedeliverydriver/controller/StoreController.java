@@ -33,6 +33,12 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoList);
     }
 
+    @GetMapping("/{storeId}")
+    public ResponseEntity<?> getStoreById(@PathVariable("storeId") UUID storeId){
+        StoreResponseDto storeResponseDto = storeService.getStore(storeId);
+        return ResponseEntity.status(HttpStatus.OK).body(storeResponseDto);
+    }
+
     @PostMapping("/")
     public ResponseEntity<?> createStore(@Valid @RequestBody StoreRequestDto requestDto) {
         // OWNER인지 확인
