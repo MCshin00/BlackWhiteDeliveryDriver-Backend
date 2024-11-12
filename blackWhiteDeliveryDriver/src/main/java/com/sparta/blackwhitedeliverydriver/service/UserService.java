@@ -47,9 +47,15 @@ public class UserService {
         return new UsernameResponseDto(savedUser.getUsername());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
     }
 
-    public UserResponseDto getUserInfo(String username) {
+    public UserResponseDto getUserInfo(String username, User loggedInuser) {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        // 요청한 사용자의 역할이 MANAGER나 MASTER가 아닌 경우 탈퇴한 사용자인지 확인
+        // MANAGER나 MASTER인 경우에는 탈퇴한 사용자의 정보도 볼 수 있음
+        if (loggedInuser.getRole() != UserRoleEnum.MANAGER && loggedInuser.getRole() != UserRoleEnum.MASTER) {
+            checkDeletedUser(user);
+        }
 
         return UserResponseDto.from(user);
     }
@@ -58,6 +64,8 @@ public class UserService {
     public UsernameResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, String username) {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        checkDeletedUser(user);
 
         user.update(requestDto, passwordEncoder);
 
@@ -70,6 +78,8 @@ public class UserService {
     public UsernameResponseDto deleteUser(String username) {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        checkDeletedUser(user);
 
         // 삭제를 수행한 사용자의 username을 가져옵니다.
         String deletedBy = auditorAware.getCurrentAuditor()
@@ -119,5 +129,11 @@ public class UserService {
         }
         // 로그인된 경우, 사용자 이름을 반환
         return authentication.getName();
+    }
+
+    private void checkDeletedUser(User user) {
+        if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
+            throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
+        }
     }
 }
