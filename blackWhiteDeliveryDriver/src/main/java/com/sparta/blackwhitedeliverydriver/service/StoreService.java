@@ -1,9 +1,12 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +44,9 @@ public class StoreService {
         store.update(requestDto);
 
         return store.getStoreId();
+    }
+
+    public List<StoreResponseDto> getStores() {
+        return storeRepository.findAll().stream().map(StoreResponseDto::new).toList();
     }
 }

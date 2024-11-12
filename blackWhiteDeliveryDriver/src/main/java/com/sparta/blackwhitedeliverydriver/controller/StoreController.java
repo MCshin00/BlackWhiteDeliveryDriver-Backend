@@ -1,12 +1,15 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
 import com.sparta.blackwhitedeliverydriver.service.StoreService;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +23,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class StoreController {
 
     private final StoreService storeService;
+
+    @GetMapping("/")
+    public ResponseEntity<?> getStores(){
+        // OWNER인지 확인
+
+        // 점포 목록
+        List<StoreResponseDto> storeResponseDtoList = storeService.getStores();
+        return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoList);
+    }
 
     @PostMapping("/")
     public ResponseEntity<?> createStore(@Valid @RequestBody StoreRequestDto requestDto) {
@@ -40,4 +52,6 @@ public class StoreController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(storeId);
     }
+
+
 }
