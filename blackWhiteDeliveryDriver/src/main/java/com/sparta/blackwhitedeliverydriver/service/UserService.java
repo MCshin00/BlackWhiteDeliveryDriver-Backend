@@ -60,7 +60,7 @@ public class UserService {
     }
 
     public UserResponseDto getUserInfo(String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         return new UserResponseDto(user);
@@ -68,7 +68,7 @@ public class UserService {
 
     @Transactional
     public UsernameResponseDto updateUser(@Valid UpdateUserRequestDto requestDto, String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
@@ -85,7 +85,7 @@ public class UserService {
 
     @Transactional
     public UsernameResponseDto deleteUser(String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         // 삭제를 수행한 사용자의 username을 가져옵니다.
@@ -101,7 +101,7 @@ public class UserService {
     }
 
     private void checkUsername(String username) {
-        Optional<User> checkUsername = userRepository.findByUsername(username);
+        Optional<User> checkUsername = userRepository.findById(username);
         if (checkUsername.isPresent()) {
             throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_USERNAME.getMessage());
         }
