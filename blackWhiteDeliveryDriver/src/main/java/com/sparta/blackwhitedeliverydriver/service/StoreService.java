@@ -51,4 +51,11 @@ public class StoreService {
     public List<StoreResponseDto> getStores() {
         return storeRepository.findAll().stream().map(StoreResponseDto::new).toList();
     }
+
+    @Transactional(readOnly = true)
+    public StoreResponseDto getStore(UUID storeId) {
+        return storeRepository.findById(storeId).map(StoreResponseDto::new).orElseThrow(
+                () -> new NullPointerException("해당 점포를 찾을 수 없습니다.")
+        );
+    }
 }
