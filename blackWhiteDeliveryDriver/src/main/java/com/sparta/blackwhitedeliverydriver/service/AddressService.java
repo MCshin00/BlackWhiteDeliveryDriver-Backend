@@ -37,7 +37,7 @@ public class AddressService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
-        if (!address.getUser().equals(user)) {
+        if (!address.getUser().getUsername().equals(user.getUsername())) {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
@@ -69,7 +69,7 @@ public class AddressService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
-        if (!address.getUser().equals(user)) {
+        if (!address.getUser().getUsername().equals(user.getUsername())) {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
@@ -84,7 +84,7 @@ public class AddressService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
-        if (!address.getUser().equals(user)) {
+        if (!address.getUser().getUsername().equals(user.getUsername())) {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
