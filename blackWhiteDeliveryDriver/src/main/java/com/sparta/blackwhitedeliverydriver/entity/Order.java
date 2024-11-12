@@ -25,7 +25,7 @@ public class Order {
     private UUID id;
 
     @Column(nullable = false)
-    private UUID user; // 유저 외래키 연동 필요
+    private String user; // 유저 외래키 연동 필요
     @Column(nullable = false)
     private Integer finalPay;
     @Column(nullable = false)
