@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class AddressService {
     }
 
     @Transactional
-    public AddressIdResponseDto updateAddress(@Valid AddressRequestDto requestDto, Long addressId, User user) {
+    public AddressIdResponseDto updateAddress(@Valid AddressRequestDto requestDto, UUID addressId, User user) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -64,7 +65,7 @@ public class AddressService {
     }
 
     @Transactional
-    public AddressIdResponseDto setCurrentAddress(Long addressId, User user) {
+    public AddressIdResponseDto setCurrentAddress(UUID addressId, User user) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -79,7 +80,7 @@ public class AddressService {
     }
 
     @Transactional
-    public AddressIdResponseDto deleteAddress(Long addressId, User user) {
+    public AddressIdResponseDto deleteAddress(UUID addressId, User user) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 

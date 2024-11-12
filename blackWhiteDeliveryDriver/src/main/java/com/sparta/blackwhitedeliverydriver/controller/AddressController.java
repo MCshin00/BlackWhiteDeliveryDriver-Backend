@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.AddressService;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users/address")
+@RequestMapping("api/v1/users/address")
 public class AddressController {
 
     private final AddressService addressService;
@@ -40,7 +41,7 @@ public class AddressController {
 
     @PutMapping("/{addressId}")
     public ResponseEntity<?> updateAddress(@Valid @RequestBody AddressRequestDto requestDto,
-                                           @PathVariable Long addressId,
+                                           @PathVariable UUID addressId,
                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 수정 처리
         AddressIdResponseDto addressIdResponseDto = addressService.updateAddress(requestDto, addressId, userDetails.getUser());
@@ -59,7 +60,7 @@ public class AddressController {
     }
 
     @PutMapping("/{addressId}/current")
-    public ResponseEntity<?> setCurrentAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<?> setCurrentAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 현재(기본) 배송지를 지정한다
         AddressIdResponseDto addressIdResponseDto = addressService.setCurrentAddress(addressId, userDetails.getUser());
 
@@ -68,8 +69,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/{addressId}")
-    @PutMapping("/{addressId}")
-    public ResponseEntity<?> deleteAddress(@PathVariable Long addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<?> deleteAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 삭제 처리(soft-delete)
         AddressIdResponseDto addressIdResponseDto = addressService.deleteAddress(addressId, userDetails.getUser());
 
