@@ -26,7 +26,7 @@ public class AddressService {
     private final UserRepository userRepository;
 
     public AddressIdResponseDto createAddress(@Valid AddressRequestDto requestDto, User user) {
-        Address address = new Address(requestDto, user);
+        Address address = Address.from(requestDto, user);
         addressRepository.save(address);
 
         return new AddressIdResponseDto(address.getId());
@@ -41,13 +41,7 @@ public class AddressService {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
-        address.setZipNum(requestDto.getZipNum());
-        address.setCity(requestDto.getCity());
-        address.setDistrict(requestDto.getDistrict());
-        address.setStreetName(requestDto.getStreetName());
-        address.setStreetNum(requestDto.getStreetNum());
-        address.setDetailAddr(requestDto.getDetailAddr());
-
+        address.update(requestDto);
         addressRepository.save(address);
 
         return new AddressIdResponseDto(address.getId());
