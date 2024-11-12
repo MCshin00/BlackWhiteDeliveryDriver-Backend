@@ -29,29 +29,17 @@ public class UserService {
     private final AuditorAware<String> auditorAware;
 
     public UsernameResponseDto signup(@Valid SignupRequestDto requestDto, UserRoleEnum loggedInRole) {
-        String username = requestDto.getUsername();
-        String password = passwordEncoder.encode(requestDto.getPassword());
-        String email = requestDto.getEmail();
-        String phoneNumber = requestDto.getPhoneNumber();
-        UserRoleEnum role = requestDto.getRole();
-
-        checkUsername(username);
-        checkEmail(email);
-        checkPhoneNumber(phoneNumber);
+        checkUsername(requestDto.getUsername());
+        checkEmail(requestDto.getEmail());
+        checkPhoneNumber(requestDto.getPhoneNumber());
         if (loggedInRole != UserRoleEnum.MASTER) {
-            checkRole(role);
+            checkRole(requestDto.getRole());
         }
 
-        User user = User.builder()
-                .username(username)
-                .password(password)
-                .email(email)
-                .phoneNumber(phoneNumber)
-                .role(role)
-                .build();
+        User user = User.from(requestDto, passwordEncoder);
 
         // 로그인된 사용자가 있을 경우 그 사용자의 username을 CreatedBy로 설정, 없는 경우 회원가입 시 지정한 username이 됨
-        String createdBy = getCurrentUsername(username);
+        String createdBy = getCurrentUsername(requestDto.getUsername());
         user.setCreatedBy(createdBy);
         user.setLastModifiedBy(createdBy);
         User savedUser = userRepository.save(user);  // User 엔티티 저장
@@ -63,7 +51,7 @@ public class UserService {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
-        return new UserResponseDto(user);
+        return UserResponseDto.from(user);
     }
 
     @Transactional
@@ -71,12 +59,7 @@ public class UserService {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
-        user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
-        user.setEmail(requestDto.getEmail());
-        user.setPhoneNumber(requestDto.getPhoneNumber());
-        user.setImageUrl(requestDto.getImgUrl());
-        user.setPublicProfile(requestDto.isPublicProfile());
-        user.setRole(requestDto.getRole());
+        user.update(requestDto, passwordEncoder);
 
         userRepository.save(user);
 
