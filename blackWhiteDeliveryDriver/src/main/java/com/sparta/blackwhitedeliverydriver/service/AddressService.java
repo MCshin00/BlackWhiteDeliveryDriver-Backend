@@ -96,7 +96,7 @@ public class AddressService {
 
     private void checkDeletedAddress(Address address) {
         if (address.getDeletedDate() != null || address.getDeletedBy() != null) {
-            throw new IllegalArgumentException("삭제된 주소입니다.");
+            throw new IllegalArgumentException(ExceptionMessage.ADDRESS_DELETED.getMessage());
         }
     }
 }
