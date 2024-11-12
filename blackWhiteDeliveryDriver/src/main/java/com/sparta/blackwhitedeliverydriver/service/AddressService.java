@@ -80,6 +80,8 @@ public class AddressService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
+        checkDeletedAddress(address);
+
         if (!address.getUser().getUsername().equals(user.getUsername())) {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
