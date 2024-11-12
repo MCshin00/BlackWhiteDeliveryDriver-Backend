@@ -9,6 +9,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,5 +60,12 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.CREATED).body(storeId);
     }
 
+    @DeleteMapping("/{storeId}")
+    public ResponseEntity<?> deleteStore(@PathVariable UUID storeId) {
+        // 해당 가게 주인(OWNER)인지 확인
 
+        // 점포 삭제
+        storeService.deleteStore(storeId);
+        return ResponseEntity.status(HttpStatus.OK).body(storeId);
+    }
 }

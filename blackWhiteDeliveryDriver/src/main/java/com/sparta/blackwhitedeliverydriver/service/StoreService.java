@@ -5,7 +5,6 @@ import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import jakarta.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,5 +56,14 @@ public class StoreService {
         return storeRepository.findById(storeId).map(StoreResponseDto::new).orElseThrow(
                 () -> new NullPointerException("해당 점포를 찾을 수 없습니다.")
         );
+    }
+
+    @Transactional
+    public void deleteStore(UUID storeId) {
+        Store store = storeRepository.findById(storeId).orElseThrow(
+                () -> new NullPointerException("존재하지않는 점포입니다.")
+        );
+
+        store.markDeleted("홍길동");
     }
 }
