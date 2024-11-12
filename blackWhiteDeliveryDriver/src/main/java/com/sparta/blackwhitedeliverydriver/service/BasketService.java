@@ -35,12 +35,16 @@ public class BasketService {
         return BasketResponseDto.from(basket);
     }
 
-    public BasketResponseDto removeProductFromBasket(String basketId) {
+    public BasketResponseDto removeProductFromBasket(String username, String basketId) {
         UUID basketUUID = UUID.fromString(basketId);
         //유저 유효성 검사
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         //장바구니 유효성 검사
         Basket basket = basketRepository.findById(basketUUID).orElseThrow(() ->
-                new IllegalArgumentException("장바구니가 존재하지 않습니다."));
+                new NullPointerException(ExceptionMessage.BASKET_NOT_FOUND.getMessage()));
+        //유저와 장바구니 유저 체크
+        checkBasketUser(user, basket);
 
         basketRepository.delete(basket);
         return BasketResponseDto.from(basket);
@@ -68,7 +72,9 @@ public class BasketService {
         return BasketResponseDto.from(basket);
     }
 
-    private boolean isValidQuantity(int quantity) {
-        return quantity >= 0 && quantity < 100;
+    private void checkBasketUser(User user, Basket basket) {
+        if(!user.getUsername().equals(basket.getUser().getUsername())){
+            throw new IllegalArgumentException(ExceptionMessage.BASKET_USER_NOT_EQUALS.getMessage());
+        }
     }
 }

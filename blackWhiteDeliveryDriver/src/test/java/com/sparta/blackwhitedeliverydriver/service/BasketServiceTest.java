@@ -92,17 +92,23 @@ class BasketServiceTest {
         //given
         String basketId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         String productId = "1e217cbf-e3ec-4e85-9f9b-42557c1dd079";
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username("user1")
+                .build();
         Basket basket = Basket.builder()
                 .id(UUID.fromString(basketId))
                 .productId(UUID.fromString(productId))
                 .quantity(2)
+                .user(user)
                 .build();
 
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         given(basketRepository.findById(any())).willReturn(Optional.ofNullable(basket));
 
         //when
         doNothing().when(basketRepository).delete(any()); //repository delete 건너뛰기
-        BasketResponseDto response = basketService.removeProductFromBasket(basketId);
+        BasketResponseDto response = basketService.removeProductFromBasket(user.getUsername(),basketId);
 
         //then
         Assertions.assertEquals(UUID.fromString(basketId), response.getBasketId());
@@ -110,20 +116,71 @@ class BasketServiceTest {
 
 
     @Test
-    @DisplayName("장바구니 빼기 실패 : 장바구니 존재하지 않는 경우")
+    @DisplayName("장바구니 빼기 실패1 : 장바구니 존재하지 않는 경우")
     void removeProductFromBasket_fail1() {
         //given
+        String username = "user1";
         String basketId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username("user1")
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
 
         //when
         when(basketRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        assertThrows(IllegalArgumentException.class, () -> {
-            basketService.removeProductFromBasket(basketId);
+        assertThrows(NullPointerException.class, () -> {
+            basketService.removeProductFromBasket(username,basketId);
         });
     }
 
+    @Test
+    @DisplayName("장바구니 빼기 실패2 : 유저가 유효하지 않는 경우")
+    void removeProductFromBasket_fail2() {
+        //given
+        String username = "user1";
+        String basketId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+
+        //when
+        when(userRepository.findById(any())).thenReturn(Optional.empty());
+
+        //when & then
+        assertThrows(NullPointerException.class, () -> {
+            basketService.removeProductFromBasket(username, basketId);
+        });
+    }
+
+    @Test
+    @DisplayName("장바구니 빼기 실패3 : 장바구니 유저와 api 호출 유저가 일치하지 않는 경우")
+    void removeProductFromBasket_fail3() {
+        //given
+        String basketId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        String productId = "1e217cbf-e3ec-4e85-9f9b-42557c1dd079";
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username("user1")
+                .build();
+        User user2 = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username("user2")
+                .build();
+        Basket basket = Basket.builder()
+                .id(UUID.fromString(basketId))
+                .productId(UUID.fromString(productId))
+                .quantity(2)
+                .user(user)
+                .build();
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user2));
+        given(basketRepository.findById(any())).willReturn(Optional.ofNullable(basket));
+
+        //when & then
+        assertThrows(IllegalArgumentException.class, () -> {
+            basketService.removeProductFromBasket(user2.getUsername(), basketId);
+        });
+    }
     @Test
     @DisplayName("장바구니 조회 성공")
     void getBaskets() {

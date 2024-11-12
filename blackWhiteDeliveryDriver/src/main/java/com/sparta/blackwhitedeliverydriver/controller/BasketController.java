@@ -43,9 +43,12 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Secured({"ROLE_CUSTOMER"})
     @DeleteMapping("/{basketId}")
-    public BasketResponseDto removeProductFromBasket(@PathVariable String basketId) {
-        return basketService.removeProductFromBasket(basketId);
+    public ResponseEntity<?> removeProductFromBasket(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                     @PathVariable String basketId) {
+        BasketResponseDto response = basketService.removeProductFromBasket(userDetails.getUsername(), basketId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Secured({"ROLE_CUSTOMER"})
