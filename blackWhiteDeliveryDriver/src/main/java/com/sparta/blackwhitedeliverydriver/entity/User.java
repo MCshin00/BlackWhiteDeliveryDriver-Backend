@@ -79,4 +79,7 @@ public class User extends BaseEntity {
         this.imageUrl = requestDto.getImgUrl();
     }
 
+    public void updateCurrentAddress(Address address) {
+        this.currentAddress = address;
+    }
 }
