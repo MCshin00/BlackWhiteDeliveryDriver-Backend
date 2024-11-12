@@ -14,7 +14,9 @@ public enum ExceptionMessage {
     DUPLICATED_EMAIL("중복된 이메일이 존재합니다."),
     DUPLICATED_PHONENUMBER("중복된 전화번호가 존재합니다."),
     NOT_ALLOEWD_ROLE("일반 사용자는 CUSTOMER 또는 OWNER로만 가입할 수 있습니다."),
-    NOT_ALLOWED_API("접근 권한이 없습니다.");
+    NOT_ALLOWED_API("접근 권한이 없습니다."),
+    ADDRESS_NOT_FOUND("해당 주소가 존재하지 않습니다."),
+    ADDRESS_DELETED("삭제된 주소입니다.");
 
     private final String message;
 }
