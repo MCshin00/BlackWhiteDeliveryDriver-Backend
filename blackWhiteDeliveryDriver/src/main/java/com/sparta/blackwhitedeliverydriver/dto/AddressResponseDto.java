@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AddressResponseDto {
     private UUID id;
 
@@ -25,12 +26,16 @@ public class AddressResponseDto {
 
     private String detailAddr;
 
-    public AddressResponseDto(Address address) {
-        this.zipNum = address.getZipNum();
-        this.city = address.getCity();
-        this.district = address.getDistrict();
-        this.streetName = address.getStreetName();
-        this.streetNum = address.getStreetNum();
-        this.detailAddr = address.getDetailAddr();
+    // 정적 팩토리 메서드 + 빌더 패턴
+    public static AddressResponseDto from(Address address) {
+        return AddressResponseDto.builder()
+                .id(address.getId())  // id 포함
+                .zipNum(address.getZipNum())
+                .city(address.getCity())
+                .district(address.getDistrict())
+                .streetName(address.getStreetName())
+                .streetNum(address.getStreetNum())
+                .detailAddr(address.getDetailAddr())
+                .build();
     }
 }

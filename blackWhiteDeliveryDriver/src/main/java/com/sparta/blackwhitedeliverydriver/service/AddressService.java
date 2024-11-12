@@ -37,6 +37,8 @@ public class AddressService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
+        checkDeletedAddress(address);
+
         if (!address.getUser().getUsername().equals(user.getUsername())) {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
@@ -48,11 +50,11 @@ public class AddressService {
     }
 
     public List<AddressResponseDto> getAllAddresses(User user) {
-        List<Address> addresses = addressRepository.findAllByUser(user);
+        List<Address> addresses = addressRepository.findAllByUserAndNotDeleted(user);
         List<AddressResponseDto> addressResponseDtos = new ArrayList<>();
 
         for (Address address : addresses) {
-            addressResponseDtos.add(new AddressResponseDto(address));
+            addressResponseDtos.add(AddressResponseDto.from(address));
         }
 
         return addressResponseDtos;
@@ -88,5 +90,11 @@ public class AddressService {
         addressRepository.save(address);
 
         return new AddressIdResponseDto(address.getId());
+    }
+
+    private void checkDeletedAddress(Address address) {
+        if (address.getDeletedDate() != null || address.getDeletedBy() != null) {
+            throw new IllegalArgumentException("삭제된 주소입니다.");
+        }
     }
 }
