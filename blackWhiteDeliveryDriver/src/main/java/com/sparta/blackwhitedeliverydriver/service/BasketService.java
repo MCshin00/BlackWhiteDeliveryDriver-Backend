@@ -46,10 +46,12 @@ public class BasketService {
         return BasketResponseDto.from(basket);
     }
 
-    public List<BasketGetResponseDto> getBaskets(Long userId) {
+    public List<BasketGetResponseDto> getBaskets(String username) {
         // 유저 유효성 검증
-        // 로그인 연동시 해당 유저의 장바구니를 조회하도록 수정 필요
-        List<Basket> basketList = basketRepository.findAll();
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        // 유저, 장바구니 join
+        List<Basket> basketList = basketRepository.findAllByUser(user);
         return basketList.stream().map(BasketGetResponseDto::from).collect(Collectors.toList());
     }
 
@@ -66,7 +68,7 @@ public class BasketService {
         return BasketResponseDto.from(basket);
     }
 
-    private boolean isValidQuantity(int quantity){
+    private boolean isValidQuantity(int quantity) {
         return quantity >= 0 && quantity < 100;
     }
 }

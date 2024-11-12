@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -106,20 +107,22 @@ class BasketControllerTest {
 
     @Test
     @DisplayName("장바구니 조회")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
     void getBaskets() throws Exception {
         //given
         String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
         String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         Integer quantity = 2;
-        //when
-        when(basketService.getBaskets(any())).thenReturn(List.of(BasketGetResponseDto.builder()
+        BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
                 .basketId(UUID.fromString(basketId))
                 .productId(UUID.fromString(productId))
                 .quantity(quantity)
-                .build()));
+                .build();
+        //when
+        when(basketService.getBaskets(any())).thenReturn(List.of(responseDto));
 
         //then
-        mvc.perform(get(BASE_URL + "/basket"))
+        mvc.perform(get(BASE_URL + "/baskets"))
                 .andExpect(status().isOk());
     }
 

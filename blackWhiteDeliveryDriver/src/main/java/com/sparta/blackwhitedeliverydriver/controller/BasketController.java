@@ -48,9 +48,13 @@ public class BasketController {
         return basketService.removeProductFromBasket(basketId);
     }
 
+    @Secured({"ROLE_CUSTOMER"})
     @GetMapping
-    public List<BasketGetResponseDto> getBaskets() {
-        return basketService.getBaskets(1L);
+    public ResponseEntity<?> getBaskets(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        //장바구니 리스트 조회
+        List<BasketGetResponseDto> responseDtoList = basketService.getBaskets(userDetails.getUsername());
+        //200 응답
+        return ResponseEntity.status(HttpStatus.OK).body(responseDtoList);
     }
 
     @PutMapping

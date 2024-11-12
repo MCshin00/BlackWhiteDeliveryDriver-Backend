@@ -128,24 +128,45 @@ class BasketServiceTest {
     @DisplayName("장바구니 조회 성공")
     void getBaskets() {
         //given
+        String username = "user1";
         String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
         String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         Integer quantity = 2;
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username(username)
+                .build();
         Basket basket = Basket.builder()
                 .quantity(quantity)
                 .productId(UUID.fromString(productId))
+                .user(user)
                 .id(UUID.fromString(basketId))
                 .build();
         //when
-        when(basketRepository.findAll()).thenReturn(List.of(basket));
-        List<BasketGetResponseDto> response = basketService.getBaskets(1L);
+        when(userRepository.findById(any())).thenReturn(Optional.ofNullable(user));
+        when(basketRepository.findAllByUser(any())).thenReturn(List.of(basket));
+        List<BasketGetResponseDto> response = basketService.getBaskets(username);
 
         //then
         Assertions.assertEquals((List.of(BasketGetResponseDto.builder()
                 .basketId(UUID.fromString(basketId))
+                .username(username)
                 .productId(UUID.fromString(productId))
                 .quantity(quantity)
                 .build())), response);
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 실패 : 유저가 유효하지 않는 경우")
+    void getBaskets_fail1() {
+        //given
+        String username = "user1";
+        given(userRepository.findById(any())).willReturn(Optional.empty());
+
+        //when & then
+        assertThrows(NullPointerException.class, () -> {
+            basketService.getBaskets(username);
+        });
     }
 
     @Test
