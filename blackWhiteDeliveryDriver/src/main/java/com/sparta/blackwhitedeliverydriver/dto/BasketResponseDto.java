@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class BasketResponseDto {
     private UUID basketId;
 
-    public static BasketResponseDto from(Basket basket) {
+    public static BasketResponseDto fromBasket(Basket basket) {
         return BasketResponseDto.builder().basketId(basket.getId()).build();
     }
 }
