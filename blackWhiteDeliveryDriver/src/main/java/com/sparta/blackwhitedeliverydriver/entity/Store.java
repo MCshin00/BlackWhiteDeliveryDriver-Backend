@@ -25,24 +25,37 @@ public class Store extends StoreTimestamped {
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "store_id", updatable = false, nullable = false)
     private UUID storeId;
-
-    @Column(nullable = false, unique = true)
+    @Column(name = "store_name", nullable = false, unique = true)
     private String storeName;
-
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
+    @Column(name = "status", nullable = false)
     private Boolean status = true; // 매장 운영 여부
+    @Column(name = "open_time", nullable = false)
     private LocalTime openTime;
+    @Column(name = "close_time", nullable = false)
     private LocalTime closeTime;
+    @Column(name = "rating", nullable = false)
     private Integer rating = 0; // 매장 평점 합산
+    @Column(name = "review_cnt", nullable = false)
     private Integer reviewCnt = 0;
+    @Column(name = "img_url")
     private String imgUrl;
+    @Column(name = "zip_num", nullable = false)
     private String zipNum;
+    @Column(name = "city", nullable = false)
     private String city;
+    @Column(name = "district", nullable = false)
     private String district;
+    @Column(name = "street_name", nullable = false)
     private String streetName;
+    @Column(name = "street_number", nullable = false)
     private String streetNumber;
+    @Column(name = "detail_addr", nullable = false)
     private String detailAddr;
+    @Column(name = "store_intro", nullable = false)
     private String storeIntro;
+    @Column(name = "is_public", nullable = false)
     private Boolean isPublic = false; // 매장 승인 여부
 
     public Store(StoreRequestDto requestDto) {

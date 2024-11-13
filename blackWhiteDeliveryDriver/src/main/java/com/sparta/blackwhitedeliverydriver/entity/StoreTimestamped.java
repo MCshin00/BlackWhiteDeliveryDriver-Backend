@@ -22,7 +22,7 @@ public class StoreTimestamped {
 
     @CreatedBy
     //@Column(updatable = false, nullable = false)
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     private String createdBy = "홍길동";
 
     @LastModifiedDate
