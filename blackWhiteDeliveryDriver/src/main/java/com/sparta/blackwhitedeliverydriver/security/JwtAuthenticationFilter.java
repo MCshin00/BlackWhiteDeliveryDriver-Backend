@@ -2,9 +2,11 @@ package com.sparta.blackwhitedeliverydriver.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.blackwhitedeliverydriver.dto.LoginRequestDto;
+import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.jwt.JwtUtil;
+import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,31 +17,28 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Slf4j(topic = "로그인 및 JWT 생성")
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtUtil jwtUtil;
+    private final AuthenticationValidator authValidator;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, AuthenticationValidator authValidator) {
         this.jwtUtil = jwtUtil;
-        setFilterProcessesUrl("api/v1/users/login");
+        this.authValidator = authValidator;
+        setFilterProcessesUrl("/api/v1/users/login");
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        if (!request.getMethod().equals(HttpMethod.POST.name())) {
-            jwtExceptionHandler(response, ExceptionMessage.NOT_ALLOWED_METHOD.getMessage(), HttpServletResponse.SC_FORBIDDEN);
-            return null;
-        }
-
-        if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            jwtExceptionHandler(response, ExceptionMessage.ALREADY_LOGGED_IN.getMessage(), HttpServletResponse.SC_FORBIDDEN);
-            return null;
-        }
-
         try {
             LoginRequestDto requestDto = new ObjectMapper().readValue(request.getInputStream(), LoginRequestDto.class);
+
+            authValidator.validateHttpMethod(request);
+            authValidator.validateUser(requestDto.getUsername());
+            authValidator.validateNotAlreadyLoggedIn();
 
             return getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -48,6 +47,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                             null
                     )
             );
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            jwtExceptionHandler(response, e.getMessage(), HttpServletResponse.SC_FORBIDDEN);
+            return null;
         } catch (IOException e) {
             log.error(e.getMessage());
             throw new RuntimeException(e.getMessage());
