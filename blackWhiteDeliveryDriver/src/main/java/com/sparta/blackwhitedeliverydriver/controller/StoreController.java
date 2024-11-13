@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
+import com.sparta.blackwhitedeliverydriver.dto.StoreIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
 import com.sparta.blackwhitedeliverydriver.service.StoreService;
@@ -47,7 +48,9 @@ public class StoreController {
         // 점포 등록
         UUID storeId = storeService.createStore(requestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(storeId);
+        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }
 
     @PutMapping("/{storeId}")
@@ -57,7 +60,9 @@ public class StoreController {
         // 점포 수정
         storeService.updateStore(storeId, requestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(storeId);
+        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }
 
     @DeleteMapping("/{storeId}")
@@ -66,6 +71,9 @@ public class StoreController {
 
         // 점포 삭제
         storeService.deleteStore(storeId);
-        return ResponseEntity.status(HttpStatus.OK).body(storeId);
+
+        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(storeIdResponseDto);
     }
 }
