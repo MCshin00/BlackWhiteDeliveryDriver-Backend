@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final UserService userService;
@@ -52,9 +52,9 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getUserInfo(@RequestParam String username) {
+    public ResponseEntity<?> getUserInfo(@RequestParam String username, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 가져오기
-        UserResponseDto responseDto = userService.getUserInfo(username);
+        UserResponseDto responseDto = userService.getUserInfo(username, userDetails.getUser());
 
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

@@ -69,7 +69,7 @@ public class AddressService {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
-        user.setCurrentAddress(address);
+        user.updateCurrentAddress(address);
         userRepository.save(user);
 
         return new AddressIdResponseDto(address.getId());
