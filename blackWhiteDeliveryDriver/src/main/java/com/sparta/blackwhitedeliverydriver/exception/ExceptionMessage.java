@@ -17,9 +17,6 @@ public enum ExceptionMessage {
     NOT_ALLOEWD_ROLE("일반 사용자는 CUSTOMER 또는 OWNER로만 가입할 수 있습니다."),
     NOT_ALLOWED_API("접근 권한이 없습니다."),
     ADDRESS_NOT_FOUND("해당 주소가 존재하지 않습니다."),
-    ADDRESS_DELETED("삭제된 주소입니다."),
-    //장바구니
-    BASKET_NOT_FOUND("장바구니를 찾을 수 없습니다."),
-    BASKET_USER_NOT_EQUALS("장바구니 유저가 아닙니다.");
+    ADDRESS_DELETED("삭제된 주소입니다.");
     private final String message;
 }
