@@ -1,5 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.entity;
 
+import com.sparta.blackwhitedeliverydriver.dto.SignupRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.UpdateUserRequestDto;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,11 +19,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -54,4 +55,31 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses = new ArrayList<>();
+
+    // 정적 팩토리 메서드
+    public static User from(SignupRequestDto requestDto, PasswordEncoder passwordEncoder) {
+        return User.builder()
+                .username(requestDto.getUsername())
+                .email(requestDto.getEmail())
+                .password(passwordEncoder.encode(requestDto.getPassword()))
+                .phoneNumber(requestDto.getPhoneNumber())
+                .role(requestDto.getRole())
+                .publicProfile(true)
+                .imageUrl(requestDto.getImgUrl())
+                .build();
+    }
+
+    // 필드 값 업데이트를 위한 메서드
+    public void update(UpdateUserRequestDto requestDto, PasswordEncoder passwordEncoder) {
+        this.email = requestDto.getEmail();
+        this.password = passwordEncoder.encode(requestDto.getPassword());
+        this.phoneNumber = requestDto.getPhoneNumber();
+        this.role = requestDto.getRole();
+        this.publicProfile = requestDto.isPublicProfile();
+        this.imageUrl = requestDto.getImgUrl();
+    }
+
+    public void updateCurrentAddress(Address address) {
+        this.currentAddress = address;
+    }
 }

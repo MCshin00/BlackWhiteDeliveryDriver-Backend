@@ -10,6 +10,7 @@ public enum ExceptionMessage {
     LOGIN_NOT_FOUND("로그인 정보가 없습니다."),
     ALREADY_LOGGED_IN("이미 로그인된 사용자입니다."),
     USER_NOT_FOUND("사용자를 찾을 수 없습니다."),
+    USER_DELETED("탈퇴한 회원입니다."),
     DUPLICATED_USERNAME("중복된 사용자가 존재합니다."),
     DUPLICATED_EMAIL("중복된 이메일이 존재합니다."),
     DUPLICATED_PHONENUMBER("중복된 전화번호가 존재합니다."),
