@@ -19,7 +19,7 @@ public class BasketGetResponseDto {
     private UUID productId;
     private Integer quantity;
 
-    public static BasketGetResponseDto from(Basket basket) {
+    public static BasketGetResponseDto fromBasket(Basket basket) {
         return BasketGetResponseDto
                 .builder()
                 .basketId(basket.getId())

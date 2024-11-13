@@ -31,8 +31,8 @@ public class BasketService {
         // 상품이 유효성, 중복 체크
         // 같은 지점에서 담은 상품인지 체크
 
-        Basket basket = basketRepository.save(Basket.from(user, request));
-        return BasketResponseDto.from(basket);
+        Basket basket = basketRepository.save(Basket.ofUserAndRequest(user, request));
+        return BasketResponseDto.fromBasket(basket);
     }
 
     public BasketResponseDto removeProductFromBasket(String username, String basketId) {
@@ -47,7 +47,7 @@ public class BasketService {
         checkBasketUser(user, basket);
 
         basketRepository.delete(basket);
-        return BasketResponseDto.from(basket);
+        return BasketResponseDto.fromBasket(basket);
     }
 
     public List<BasketGetResponseDto> getBaskets(String username) {
@@ -56,7 +56,7 @@ public class BasketService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         // 유저, 장바구니 join
         List<Basket> basketList = basketRepository.findAllByUser(user);
-        return basketList.stream().map(BasketGetResponseDto::from).collect(Collectors.toList());
+        return basketList.stream().map(BasketGetResponseDto::fromBasket).collect(Collectors.toList());
     }
 
     @Transactional
@@ -73,7 +73,7 @@ public class BasketService {
         basket.updateBasketOfQuantity(request.getQuantity());
         basketRepository.save(basket);
 
-        return BasketResponseDto.from(basket);
+        return BasketResponseDto.fromBasket(basket);
     }
 
     private void checkBasketUser(User user, Basket basket) {

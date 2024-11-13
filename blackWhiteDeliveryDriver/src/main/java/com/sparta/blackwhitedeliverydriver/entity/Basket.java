@@ -40,7 +40,7 @@ public class Basket extends BaseEntity {
         this.quantity = quantity;
     }
 
-    public static Basket from(User user, BasketAddRequestDto requestDto) {
+    public static Basket ofUserAndRequest(User user, BasketAddRequestDto requestDto) {
         return Basket.builder()
                 .productId(requestDto.getProductId())
                 .quantity(requestDto.getQuantity())
