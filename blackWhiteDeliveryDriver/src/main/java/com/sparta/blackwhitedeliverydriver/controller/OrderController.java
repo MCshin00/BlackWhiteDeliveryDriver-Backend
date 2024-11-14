@@ -2,6 +2,8 @@ package com.sparta.blackwhitedeliverydriver.controller;
 
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
+import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.OrderService;
 import java.util.List;
@@ -14,6 +16,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,5 +54,15 @@ public class OrderController {
         List<OrderGetResponseDto> responseList = orderService.getOrders(userDetails.getUsername());
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseList);
+    }
+
+    @Secured({"ROLE_OWNER"})
+    @PutMapping
+    public ResponseEntity<OrderResponseDto> updateOrderStatus(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                              @RequestBody OrderUpdateRequestDto request) {
+        //주문 상태 변경
+        OrderResponseDto response = orderService.updateOrderStatus(userDetails.getUsername(), request);
+        //200 반환
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

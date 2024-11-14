@@ -10,9 +10,11 @@ import static org.mockito.Mockito.when;
 
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
+import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
@@ -65,6 +67,8 @@ class OrderServiceTest {
         Order order = Order.builder()
                 .id(UUID.fromString(orderId))
                 .user(user)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.CREATE)
                 .build();
         OrderProduct orderProduct = OrderProduct.builder()
                 .id(UUID.fromString(orderProductId))
@@ -133,6 +137,8 @@ class OrderServiceTest {
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.CREATE)
                 .discountAmount(0)
                 .discountRate(0)
                 .finalPay(10000)
@@ -205,6 +211,8 @@ class OrderServiceTest {
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.CREATE)
                 .discountAmount(0)
                 .discountRate(0)
                 .finalPay(10000)
@@ -233,11 +241,12 @@ class OrderServiceTest {
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.CREATE)
                 .discountAmount(0)
                 .discountRate(0)
                 .finalPay(10000)
                 .build();
-
 
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         when(orderRepository.findAllByUser(any())).thenReturn(List.of(order));
@@ -250,6 +259,7 @@ class OrderServiceTest {
         assertEquals(orderId, responseList.get(0).getOrderId());
         assertEquals(order.getFinalPay(), responseList.get(0).getFinalPay());
     }
+
     @Test
     @DisplayName("주문 목록 조회 실패 : 유저가 존재하지 않는 경우")
     void getOrders_fail() {
@@ -265,4 +275,80 @@ class OrderServiceTest {
         assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
+    @Test
+    @DisplayName("주문 상태 수정 성공")
+    void updateOrderStatus_success() {
+        //given
+        UUID orderId = UUID.randomUUID();
+        String username = "owner";
+        User user = User.builder()
+                .username(username)
+                .role(UserRoleEnum.OWNER)
+                .build();
+        Order order = Order.builder()
+                .id(orderId)
+                .user(user)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.CREATE)
+                .discountAmount(0)
+                .discountRate(0)
+                .finalPay(10000)
+                .build();
+        OrderUpdateRequestDto request = new OrderUpdateRequestDto(orderId, OrderStatusEnum.ACCEPTED);
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+        given(orderRepository.findById(any())).willReturn(Optional.ofNullable(order));
+
+        //when
+        OrderResponseDto response = orderService.updateOrderStatus(username, request);
+
+        //then
+        assertEquals(OrderStatusEnum.ACCEPTED, order.getStatus());
+        assertEquals(orderId, response.getOrderId());
+    }
+
+    @Test
+    @DisplayName("주문 상태 수정 실패1 : 유저가 없는 경우")
+    void updateOrderStatus_fail1() {
+        //given
+        String username = "owner";
+        UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
+        OrderUpdateRequestDto request = new OrderUpdateRequestDto(orderId, OrderStatusEnum.ACCEPTED);
+
+        when(userRepository.findById(any())).thenReturn(Optional.empty());
+
+        //when & then
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> orderService.updateOrderStatus(username, request));
+        assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 상태 수정 실패2 : 주문서가 없는 경우")
+    void updateOrderStatus_fail2() {
+        //given
+        UUID orderId = UUID.randomUUID();
+        String username = "owner";
+        User user = User.builder()
+                .username(username)
+                .role(UserRoleEnum.CUSTOMER)
+                .build();
+        OrderUpdateRequestDto request = new OrderUpdateRequestDto(orderId, OrderStatusEnum.ACCEPTED);
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+
+        when(orderRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when & then
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> orderService.updateOrderStatus(username, request));
+
+        assertEquals(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 상태 수정 실패3 : 주문서의 점포 주인과 유저가 다른 경우")
+    void updateOrderStatus_fail3() {
+        // code
+    }
 }

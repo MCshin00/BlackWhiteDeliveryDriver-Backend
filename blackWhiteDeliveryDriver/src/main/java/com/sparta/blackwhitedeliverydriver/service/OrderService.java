@@ -2,6 +2,7 @@ package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
@@ -14,6 +15,7 @@ import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
+import jakarta.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +47,8 @@ public class OrderService {
         checkBasketCount(baskets);
 
         //order 엔티티 생성 및 저장
-        Order order = Order.fromUser(user);
+        UUID storeId = UUID.randomUUID();
+        Order order = Order.fromUser(user, storeId);
         order = orderRepository.save(order);
 
         //연관관계 테이블에 장바구니 품목 저장
@@ -122,5 +125,18 @@ public class OrderService {
         if (!orderUsername.equals(username)) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_USER_NOT_EQUALS.getMessage());
         }
+    }
+
+    public OrderResponseDto updateOrderStatus(String username, OrderUpdateRequestDto request) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        //주문 유효성
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        //주문의 점포 주인과 유저 체크
+        //Code...
+        order.updateStatus(request.getStatus());
+        return new OrderResponseDto(order.getId());
     }
 }
