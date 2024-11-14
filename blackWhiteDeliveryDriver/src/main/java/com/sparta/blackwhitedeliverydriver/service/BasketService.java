@@ -6,6 +6,7 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
@@ -42,7 +43,7 @@ public class BasketService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         //장바구니 유효성 검사
         Basket basket = basketRepository.findById(basketUUID).orElseThrow(() ->
-                new NullPointerException(ExceptionMessage.BASKET_NOT_FOUND.getMessage()));
+                new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
         //유저와 장바구니 유저 체크
         checkBasketUser(user, basket);
 
@@ -66,7 +67,7 @@ public class BasketService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         //장바구니 유효성 검사
         Basket basket = basketRepository.findById(request.getBasketId()).orElseThrow(() ->
-                new NullPointerException(ExceptionMessage.BASKET_NOT_FOUND.getMessage()));
+                new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
         //장바구니 유저와 api 호출 유저 체크
         checkBasketUser(user, basket);
 
@@ -78,7 +79,7 @@ public class BasketService {
 
     private void checkBasketUser(User user, Basket basket) {
         if (!user.getUsername().equals(basket.getUser().getUsername())) {
-            throw new IllegalArgumentException(ExceptionMessage.BASKET_USER_NOT_EQUALS.getMessage());
+            throw new IllegalArgumentException(BasketExceptionMessage.BASKET_USER_NOT_EQUALS.getMessage());
         }
     }
 }
