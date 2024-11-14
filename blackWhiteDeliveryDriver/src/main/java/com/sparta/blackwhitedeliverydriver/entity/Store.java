@@ -1,10 +1,14 @@
 package com.sparta.blackwhitedeliverydriver.entity;
 
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
+import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -85,7 +89,7 @@ public class Store extends BaseEntity {
                 .build();
     }
 
-    public void update(StoreRequestDto requestDto) {
+    public void update(StoreRequestDto requestDto, UserDetailsImpl userDetails) {
         this.storeName = requestDto.getStoreName();
         this.phoneNumber = requestDto.getPhoneNumber();
         this.openTime = requestDto.getOpenTime();
