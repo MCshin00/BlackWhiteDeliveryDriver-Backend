@@ -28,7 +28,7 @@ public class OrderService {
     private final UserRepository userRepository;
 
     @Transactional
-    public OrderResponseDto createOrder(String username) { // 메서드를 어떻게 개선할 수 있을까요...? 좋은 의견 남겨주시면 감사하겠습니다...
+    public OrderResponseDto createOrder(String username) {
         //유저 유효성 검사
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
@@ -53,7 +53,7 @@ public class OrderService {
         order.updateFinalPay(price);
         orderRepository.save(order);
 
-        return OrderResponseDto.from(order);
+        return new OrderResponseDto(order.getId());
     }
 
     private void checkBasketCount(List<Basket> baskets) {

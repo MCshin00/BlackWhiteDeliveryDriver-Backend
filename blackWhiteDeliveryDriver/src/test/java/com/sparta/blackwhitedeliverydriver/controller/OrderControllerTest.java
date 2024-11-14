@@ -38,9 +38,7 @@ class OrderControllerTest {
     void createOrder() throws Exception {
         //given
         String orderId = "3e678a43-41b1-4a35-97fb-4ad686308074";
-        OrderResponseDto response = OrderResponseDto.builder()
-                .orderId(UUID.fromString(orderId))
-                .build();
+        OrderResponseDto response = new OrderResponseDto(UUID.fromString(orderId));
         //when
         when(orderService.createOrder(any())).thenReturn(response);
         //then
