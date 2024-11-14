@@ -93,6 +93,7 @@ public class OrderService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         //주문 조회
+        //점포 주인 권한은 Product 엔티티가 생성된 후 추가하겠습니다.
         List<Order> orders;
         if (user.getRole().equals(UserRoleEnum.CUSTOMER)) {
             orders = orderRepository.findAllByUser(user);
