@@ -162,7 +162,7 @@ public class UserControllerTest {
                 .imgUrl(null)
                 .build();
 
-        when(userService.getUserInfo(eq("user"), any(User.class)))
+        when(userService.getUserInfo(eq("user"), any(String.class)))
                 .thenReturn(responseDto);
 
         // when - then

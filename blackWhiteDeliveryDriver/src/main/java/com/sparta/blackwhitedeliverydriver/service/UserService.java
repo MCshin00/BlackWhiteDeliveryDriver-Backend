@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,14 +46,18 @@ public class UserService {
         return new UsernameResponseDto(savedUser.getUsername());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
     }
 
-    public UserResponseDto getUserInfo(String username, User loggedInuser) {
+    public UserResponseDto getUserInfo(String username, String loggedInUsername) {
+        User loggedInUser = userRepository.findById(loggedInUsername)
+                .orElseThrow(() -> new UsernameNotFoundException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
-        // 요청한 사용자의 역할이 MANAGER나 MASTER가 아닌 경우 탈퇴한 사용자인지 확인
-        // MANAGER나 MASTER인 경우에는 탈퇴한 사용자의 정보도 볼 수 있음
-        if (loggedInuser.getRole() != UserRoleEnum.MANAGER && loggedInuser.getRole() != UserRoleEnum.MASTER) {
+        // 요청한 사용자의 역할이 MANAGER나 MASTER가 아닌 경우 탈퇴한 사용자거나 프로필이 비공개 상태인지 확인
+        // MANAGER나 MASTER인 경우에는 탈퇴한 사용자나 프로필이 비공개 상태인 사용자의 정보도 볼 수 있음
+        if (loggedInUser.getRole() != UserRoleEnum.MANAGER && loggedInUser.getRole() != UserRoleEnum.MASTER) {
             checkDeletedUser(user);
+            checkPublicProfile(user);
         }
 
         return UserResponseDto.from(user);
@@ -121,6 +126,12 @@ public class UserService {
     private void checkDeletedUser(User user) {
         if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
             throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
+        }
+    }
+
+    private void checkPublicProfile(User user) {
+        if (!user.isPublicProfile()) {
+            throw new IllegalArgumentException(ExceptionMessage.USER_NOT_PUBLIC.getMessage());
         }
     }
 }
