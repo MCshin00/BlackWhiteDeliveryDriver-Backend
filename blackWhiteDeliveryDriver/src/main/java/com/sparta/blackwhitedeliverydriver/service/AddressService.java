@@ -62,6 +62,18 @@ public class AddressService {
         return addressResponseDtos;
     }
 
+    public AddressResponseDto getCurrentAddress(String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        checkCurrentAddress(user);
+
+        Address address = addressRepository.findById(user.getCurrentAddress().getId())
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
+
+        return AddressResponseDto.from(address);
+    }
+
     @Transactional
     public AddressIdResponseDto setCurrentAddress(UUID addressId, User user) {
         Address address = addressRepository.findById(addressId)
@@ -99,6 +111,12 @@ public class AddressService {
     private void checkDeletedAddress(Address address) {
         if (address.getDeletedDate() != null || address.getDeletedBy() != null) {
             throw new IllegalArgumentException(ExceptionMessage.ADDRESS_DELETED.getMessage());
+        }
+    }
+
+    private void checkCurrentAddress(User user) {
+        if (user.getCurrentAddress() == null) {
+            throw new IllegalArgumentException(ExceptionMessage.CURRNET_ADDRESS_NOT_FOUND.getMessage());
         }
     }
 }

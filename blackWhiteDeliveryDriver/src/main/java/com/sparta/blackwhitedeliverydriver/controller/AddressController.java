@@ -59,6 +59,15 @@ public class AddressController {
         return ResponseEntity.status(HttpStatus.OK).body(addressResponseDtos);
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<?> getCurrentAddress(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 사용자의 현재(기본) 배송지를 가져온다
+        AddressResponseDto responseDto = addressService.getCurrentAddress(userDetails.getUsername());
+
+        // 성공 응답으로 200 OK와 AddressResponseDto 반환
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @PutMapping("/{addressId}/current")
     public ResponseEntity<?> setCurrentAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 현재(기본) 배송지를 지정한다
