@@ -3,6 +3,7 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -131,5 +132,24 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderId").exists());
 
+    }
+
+    @Test
+    @DisplayName("주문 취소하기")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
+    void deleteOrder() throws Exception {
+        //given
+        String username = "user";
+        UUID orderId = UUID.randomUUID();
+        OrderResponseDto response = new OrderResponseDto(orderId);
+
+        //when
+        when(orderService.deleteOrder(any(), any())).thenReturn(response);
+
+        //then
+        mvc.perform(delete(BASE_URL + "/orders/{orderId}", orderId.toString())
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderId").exists());
     }
 }

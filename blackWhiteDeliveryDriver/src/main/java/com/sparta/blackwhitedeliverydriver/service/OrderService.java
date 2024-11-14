@@ -6,6 +6,7 @@ import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
+import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
@@ -15,7 +16,6 @@ import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
-import jakarta.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -107,6 +107,51 @@ public class OrderService {
         return orders.stream().map(OrderGetResponseDto::fromOrder).collect(Collectors.toList());
     }
 
+    @Transactional
+    public OrderResponseDto updateOrderStatus(String username, OrderUpdateRequestDto request) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        //주문 유효성
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        //주문의 점포 주인과 유저 체크
+        //Code...
+        order.updateStatus(request.getStatus());
+        return new OrderResponseDto(order.getId());
+    }
+
+    @Transactional
+    public OrderResponseDto deleteOrder(String username, UUID orderId) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        //주문 유효성
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+
+        //주문 유저 와 API 호출한 유저 체크
+        checkOrderUser(order, user);
+
+        //주문 상태 확인
+        checkEnableDeleteOrderStatus(order);
+
+        //orderProduct 조회 후 basket 저장
+        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
+        for (OrderProduct orderProduct : orderProducts) {
+            Basket basket = Basket.ofUserAndOrderProduct(user, orderProduct);
+            basketRepository.save(basket);
+        }
+
+        //orderProduct 삭제
+        orderProductRepository.deleteAll(orderProducts);
+
+        //order 삭제
+        orderRepository.delete(order);
+        return new OrderResponseDto(order.getId());
+    }
+
     private void checkBasketCount(List<Basket> baskets) {
         if (baskets.isEmpty()) {
             throw new IllegalArgumentException(BasketExceptionMessage.BASKET_COUNT_ZERO.getMessage());
@@ -127,16 +172,10 @@ public class OrderService {
         }
     }
 
-    public OrderResponseDto updateOrderStatus(String username, OrderUpdateRequestDto request) {
-        //유저 유효성
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-        //주문 유효성
-        Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
-        //주문의 점포 주인과 유저 체크
-        //Code...
-        order.updateStatus(request.getStatus());
-        return new OrderResponseDto(order.getId());
+    private void checkEnableDeleteOrderStatus(Order order) {
+        if (!order.getStatus().equals(OrderStatusEnum.CREATE) && !order.getStatus().equals(OrderStatusEnum.PENDING)) {
+            throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_DELETE_STATUS.getMessage());
+        }
     }
+
 }

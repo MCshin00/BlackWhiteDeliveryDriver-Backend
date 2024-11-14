@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import javax.swing.text.html.Option;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -350,5 +351,148 @@ class OrderServiceTest {
     @DisplayName("주문 상태 수정 실패3 : 주문서의 점포 주인과 유저가 다른 경우")
     void updateOrderStatus_fail3() {
         // code
+    }
+
+    @Test
+    @DisplayName("주문 취소 성공")
+    void deleteOrder_success() {
+        //given
+        String username = "user";
+        UUID basketId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UUID orderProductId = UUID.randomUUID();
+
+        User user = User.builder()
+                .username(username)
+                .role(UserRoleEnum.CUSTOMER)
+                .build();
+        Basket basket = Basket.builder()
+                .id(basketId)
+                .user(user)
+                .productId(productId)
+                .quantity(2)
+                .build();
+        Order order = Order.builder()
+                .id(orderId)
+                .user(user)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.CREATE)
+                .build();
+        OrderProduct orderProduct = OrderProduct.builder()
+                .id(orderProductId)
+                .order(order)
+                .product(productId)
+                .quantity(2)
+                .price(5000)
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+        given(orderRepository.findById(any())).willReturn(Optional.ofNullable(order));
+        when(orderProductRepository.findAllByOrder(any())).thenReturn(List.of(orderProduct));
+        when(basketRepository.save(any())).thenReturn(Optional.ofNullable(basket));
+        doNothing().when(orderProductRepository).deleteAll(any());
+        doNothing().when(orderRepository).delete(any());
+
+        //when
+        OrderResponseDto response = new OrderResponseDto(order.getId());
+
+        //then
+        assertEquals(order.getId(), response.getOrderId());
+    }
+
+    @Test
+    @DisplayName("주문 취소 실패1 : 유저가 존재하지 않는 경우")
+    void deleteOrder_fail1() {
+        //given
+        String username = "user";
+        UUID orderId = UUID.randomUUID();
+        when(userRepository.findById(any())).thenReturn(Optional.empty());
+        //when & then
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> orderService.deleteOrder(username, orderId));
+        assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 취소 실패2 : 주문이 존재하지 않는 경우")
+    void deleteOrder_fail2() {
+        //given
+        UUID orderId = UUID.randomUUID();
+        String username = "user";
+        User user = User.builder()
+                .username(username)
+                .role(UserRoleEnum.CUSTOMER)
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+
+        when(orderRepository.findById(any())).thenReturn(Optional.empty());
+
+        //when & then
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> orderService.deleteOrder(username, orderId));
+        assertEquals(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 취소 실패3 : 주문한 유저와 api를 호출한 유저가 일치하지 않을 때")
+    void deleteOrder_fail3() {
+        //given
+        String username1 = "user1";
+        String username2 = "user2";
+        UUID orderId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UUID orderProductId = UUID.randomUUID();
+
+        User user1 = User.builder()
+                .username(username1)
+                .role(UserRoleEnum.CUSTOMER)
+                .build();
+        User user2 = User.builder()
+                .username(username2)
+                .role(UserRoleEnum.CUSTOMER)
+                .build();
+        Order order = Order.builder()
+                .id(orderId)
+                .user(user1)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.CREATE)
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user2));
+        given(orderRepository.findById(any())).willReturn(Optional.ofNullable(order));
+
+        //when & then
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> orderService.deleteOrder(username2, orderId));
+        assertEquals(OrderExceptionMessage.ORDER_USER_NOT_EQUALS.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 취소 실패4 : 주문의 상태가 CREATE, PENDING이 아닐 때")
+    void deleteOrder_fail4() {
+        //given
+        String username = "user1";
+        UUID orderId = UUID.randomUUID();
+
+        User user = User.builder()
+                .username(username)
+                .role(UserRoleEnum.CUSTOMER)
+                .build();
+        Order order = Order.builder()
+                .id(orderId)
+                .user(user)
+                .store(UUID.randomUUID())
+                .status(OrderStatusEnum.ACCEPTED)
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+        given(orderRepository.findById(any())).willReturn(Optional.ofNullable(order));
+
+        //when & then
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> orderService.deleteOrder(username, orderId));
+        assertEquals(OrderExceptionMessage.ORDER_UNABLE_DELETE_STATUS.getMessage(), exception.getMessage());
     }
 }
