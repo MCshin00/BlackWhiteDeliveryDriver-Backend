@@ -20,12 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditorAware<String> auditorAware;
 
+    @Transactional
     public UsernameResponseDto signup(@Valid SignupRequestDto requestDto, UserRoleEnum loggedInRole) {
         checkUsername(requestDto.getUsername());
         checkEmail(requestDto.getEmail());
