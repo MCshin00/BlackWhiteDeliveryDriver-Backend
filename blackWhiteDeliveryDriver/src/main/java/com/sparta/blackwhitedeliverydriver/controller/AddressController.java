@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -51,9 +52,14 @@ public class AddressController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getAllAddress(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<?> getAllAddress(
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 모든 주소를 가져온다
-        List<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUser());
+        List<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUser(), page-1, size, sortBy, isAsc);
 
         // 성공 응답으로 200 OK와 AddressResponseDto 리스트 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressResponseDtos);
