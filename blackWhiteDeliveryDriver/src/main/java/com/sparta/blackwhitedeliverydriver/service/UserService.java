@@ -13,21 +13,21 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditorAware<String> auditorAware;
 
+    @Transactional
     public UsernameResponseDto signup(@Valid SignupRequestDto requestDto, UserRoleEnum loggedInRole) {
         checkUsername(requestDto.getUsername());
         checkEmail(requestDto.getEmail());
@@ -39,7 +39,8 @@ public class UserService {
         User user = User.from(requestDto, passwordEncoder);
 
         // 로그인된 사용자가 있을 경우 그 사용자의 username을 CreatedBy로 설정, 없는 경우 회원가입 시 지정한 username이 됨
-        String createdBy = getCurrentUsername(requestDto.getUsername());
+        String createdBy = auditorAware.getCurrentAuditor()
+                .orElse(requestDto.getUsername());
         user.setCreatedBy(createdBy);
         user.setLastModifiedBy(createdBy);
         User savedUser = userRepository.save(user);  // User 엔티티 저장
@@ -47,14 +48,18 @@ public class UserService {
         return new UsernameResponseDto(savedUser.getUsername());  //저장된 User Entity의 id값을 통해 SignupResponseDto를 생성하고 반환
     }
 
-    public UserResponseDto getUserInfo(String username, User loggedInuser) {
+    public UserResponseDto getUserInfo(String username, String loggedInUsername) {
+        User loggedInUser = userRepository.findById(loggedInUsername)
+                .orElseThrow(() -> new UsernameNotFoundException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
-        // 요청한 사용자의 역할이 MANAGER나 MASTER가 아닌 경우 탈퇴한 사용자인지 확인
-        // MANAGER나 MASTER인 경우에는 탈퇴한 사용자의 정보도 볼 수 있음
-        if (loggedInuser.getRole() != UserRoleEnum.MANAGER && loggedInuser.getRole() != UserRoleEnum.MASTER) {
+        // 요청한 사용자의 역할이 MANAGER나 MASTER가 아닌 경우 탈퇴한 사용자거나 프로필이 비공개 상태인지 확인
+        // MANAGER나 MASTER인 경우에는 탈퇴한 사용자나 프로필이 비공개 상태인 사용자의 정보도 볼 수 있음
+        if (loggedInUser.getRole() != UserRoleEnum.MANAGER && loggedInUser.getRole() != UserRoleEnum.MASTER) {
             checkDeletedUser(user);
+            checkPublicProfile(user);
         }
 
         return UserResponseDto.from(user);
@@ -120,20 +125,15 @@ public class UserService {
         }
     }
 
-    // 현재 로그인된 사용자의 username을 가져오는 메서드
-    private String getCurrentUsername(String username) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // 인증되지 않은 경우, 즉 anonymousUser일 경우
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            return username;  // 로그인되지 않은 경우, 요청된 username을 return
-        }
-        // 로그인된 경우, 사용자 이름을 반환
-        return authentication.getName();
-    }
-
     private void checkDeletedUser(User user) {
         if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
             throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
+        }
+    }
+
+    private void checkPublicProfile(User user) {
+        if (!user.isPublicProfile()) {
+            throw new IllegalArgumentException(ExceptionMessage.USER_NOT_PUBLIC.getMessage());
         }
     }
 }
