@@ -20,11 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AddressService {
 
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public AddressIdResponseDto createAddress(@Valid AddressRequestDto requestDto, User user) {
         Address address = Address.from(requestDto, user);
         addressRepository.save(address);
