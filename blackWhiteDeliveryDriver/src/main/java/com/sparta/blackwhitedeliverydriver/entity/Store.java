@@ -59,7 +59,11 @@ public class Store extends BaseEntity {
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic = false; // 매장 승인 여부
 
-    public static Store from(StoreRequestDto requestDto) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_username", nullable = false)
+    private User user;
+
+    public static Store from(StoreRequestDto requestDto, User user) {
         return Store.builder()
                 .storeName(requestDto.getStoreName())
                 .phoneNumber(requestDto.getPhoneNumber())
