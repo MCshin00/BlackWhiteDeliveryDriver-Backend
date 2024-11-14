@@ -81,6 +81,7 @@ public class Store extends BaseEntity {
                 .isPublic(true)
                 .rating(0)
                 .reviewCnt(0)
+                .user(user)
                 .build();
     }
 
