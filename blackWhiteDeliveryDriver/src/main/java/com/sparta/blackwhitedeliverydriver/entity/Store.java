@@ -8,15 +8,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalTime;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Getter
-@Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "p_stores")
 public class Store extends StoreTimestamped {
     @Id
@@ -57,22 +59,25 @@ public class Store extends StoreTimestamped {
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic = false; // 매장 승인 여부
 
-    public Store(StoreRequestDto requestDto) {
-        this.storeName = requestDto.getStoreName();
-        this.phoneNumber = requestDto.getPhoneNumber();
-        this.openTime = requestDto.getOpenTime();
-        this.closeTime = requestDto.getCloseTime();
-        this.imgUrl = requestDto.getImgUrl();
-        this.zipNum = requestDto.getZipNum();
-        this.city = requestDto.getCity();
-        this.district = requestDto.getDistrict();
-        this.streetName = requestDto.getStreetName();
-        this.streetNumber = requestDto.getStreetNumber();
-        this.detailAddr = requestDto.getDetailAddr();
-        this.storeIntro = requestDto.getStoreIntro();
-        this.isPublic = true;
-        this.rating = 0;
-        this.reviewCnt = 0;
+    public static Store from(StoreRequestDto requestDto) {
+        return Store.builder()
+                .storeName(requestDto.getStoreName())
+                .phoneNumber(requestDto.getPhoneNumber())
+                .status(true)
+                .openTime(requestDto.getOpenTime())
+                .closeTime(requestDto.getCloseTime())
+                .imgUrl(requestDto.getImgUrl())
+                .zipNum(requestDto.getZipNum())
+                .city(requestDto.getCity())
+                .district(requestDto.getDistrict())
+                .streetName(requestDto.getStreetName())
+                .streetNumber(requestDto.getStreetNumber())
+                .detailAddr(requestDto.getDetailAddr())
+                .storeIntro(requestDto.getStoreIntro())
+                .isPublic(true)
+                .rating(0)
+                .reviewCnt(0)
+                .build();
     }
 
     public void update(StoreRequestDto requestDto) {

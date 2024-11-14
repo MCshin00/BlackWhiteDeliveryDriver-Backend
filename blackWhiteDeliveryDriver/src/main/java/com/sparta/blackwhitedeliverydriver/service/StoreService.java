@@ -22,7 +22,7 @@ public class StoreService {
         // 점포 중복확인 (이름, 전화번호)
 
         // 점포 등록
-        storeRepository.save(new Store(requestDto));
+        storeRepository.save(Store.from(requestDto));
 
         // 점포 조회
         Optional<Store> res = Optional.ofNullable(
