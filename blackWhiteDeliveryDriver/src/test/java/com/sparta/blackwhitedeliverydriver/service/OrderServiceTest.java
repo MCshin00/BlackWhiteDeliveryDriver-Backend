@@ -122,7 +122,7 @@ class OrderServiceTest {
 
     @Test
     @DisplayName("주문 상세 조회 성공")
-    void getOrderDetail() {
+    void getOrderDetail_success() {
         //given
         UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
         String username = "user1";
@@ -218,6 +218,51 @@ class OrderServiceTest {
                 () -> orderService.getOrderDetail(username, orderId));
 
         assertEquals(OrderExceptionMessage.ORDER_USER_NOT_EQUALS.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회 성공")
+    void getOrders_success() {
+        //given
+        UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
+        String username = "user1";
+        User user = User.builder()
+                .username(username)
+                .role(UserRoleEnum.CUSTOMER)
+                .build();
+        Order order = Order.builder()
+                .id(orderId)
+                .user(user)
+                .discountAmount(0)
+                .discountRate(0)
+                .finalPay(10000)
+                .build();
+
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+        when(orderRepository.findAllByUser(any())).thenReturn(List.of(order));
+
+        //when
+        List<OrderGetResponseDto> responseList = orderService.getOrders(username);
+
+        //then
+        assertEquals(username, responseList.get(0).getUsername());
+        assertEquals(orderId, responseList.get(0).getOrderId());
+        assertEquals(order.getFinalPay(), responseList.get(0).getFinalPay());
+    }
+    @Test
+    @DisplayName("주문 목록 조회 실패 : 유저가 존재하지 않는 경우")
+    void getOrders_fail() {
+        //given
+        String username = "user1";
+
+        when(userRepository.findById(any())).thenReturn(Optional.empty());
+
+        //when & then
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> orderService.getOrders(username));
+
+        assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
 }

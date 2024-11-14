@@ -17,6 +17,7 @@ import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +87,22 @@ public class OrderService {
         return OrderGetResponseDto.fromOrder(order);
     }
 
+    public List<OrderGetResponseDto> getOrders(String username) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        //주문 조회
+        List<Order> orders;
+        if (user.getRole().equals(UserRoleEnum.CUSTOMER)) {
+            orders = orderRepository.findAllByUser(user);
+        } else {
+            orders = orderRepository.findAll();
+        }
+
+        return orders.stream().map(OrderGetResponseDto::fromOrder).collect(Collectors.toList());
+    }
+
     private void checkBasketCount(List<Basket> baskets) {
         if (baskets.isEmpty()) {
             throw new IllegalArgumentException(BasketExceptionMessage.BASKET_COUNT_ZERO.getMessage());
@@ -105,5 +122,4 @@ public class OrderService {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_USER_NOT_EQUALS.getMessage());
         }
     }
-
 }

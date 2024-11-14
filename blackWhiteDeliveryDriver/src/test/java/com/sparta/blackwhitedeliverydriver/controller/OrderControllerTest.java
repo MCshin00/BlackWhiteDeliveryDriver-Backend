@@ -14,6 +14,7 @@ import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.mock.user.MockUser;
 import com.sparta.blackwhitedeliverydriver.service.OrderService;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("관리자용 주문 상세 조회하기")
+    @DisplayName("주문 상세 조회하기")
     @MockUser(role = UserRoleEnum.MASTER)
     void getOrderDetail() throws Exception {
         //given
@@ -71,9 +72,36 @@ class OrderControllerTest {
         when(orderService.getOrderDetail(any(), any())).thenReturn(response);
 
         //then
-        mvc.perform(get(BASE_URL + "/orders/admin/{orderId}", orderId))
+        mvc.perform(get(BASE_URL + "/orders/{orderId}", orderId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderId").exists())
                 .andExpect(jsonPath("$.username").exists());
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회하기")
+    @MockUser
+    void getOrders() throws Exception {
+        //given
+        String orderId = "3e678a43-41b1-4a35-97fb-4ad686308074";
+        String username = "user1";
+        OrderGetResponseDto response = OrderGetResponseDto.builder()
+                .orderId(UUID.fromString(orderId))
+                .username(username)
+                .finalPay(10000)
+                .discountAmount(0)
+                .discountRate(0)
+                .build();
+        List<OrderGetResponseDto> responseList = List.of(response);
+
+        //when
+        when(orderService.getOrders(any())).thenReturn(responseList);
+
+        //then
+        mvc.perform(get(BASE_URL + "/orders"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.*.orderId").exists())
+                .andExpect(jsonPath("$.*.username").exists());
+
     }
 }

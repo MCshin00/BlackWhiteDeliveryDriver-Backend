@@ -4,6 +4,7 @@ import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.OrderService;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,5 +41,14 @@ public class OrderController {
         OrderGetResponseDto response = orderService.getOrderDetail(userDetails.getUsername(), orderId);
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
+    @GetMapping
+    public ResponseEntity<List<OrderGetResponseDto>> getOrders(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        //주문 목록 조회
+        List<OrderGetResponseDto> responseList = orderService.getOrders(userDetails.getUsername());
+        //200 반환
+        return ResponseEntity.status(HttpStatus.OK).body(responseList);
     }
 }
