@@ -3,12 +3,15 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.mock.user.MockUser;
 import com.sparta.blackwhitedeliverydriver.service.OrderService;
 import java.util.UUID;
@@ -33,7 +36,7 @@ class OrderControllerTest {
     private static final String BASE_URL = "/api/v1";
 
     @Test
-    @DisplayName("주문생성하기")
+    @DisplayName("주문 생성하기")
     @MockUser
     void createOrder() throws Exception {
         //given
@@ -47,5 +50,30 @@ class OrderControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.orderId").exists());
 
+    }
+
+    @Test
+    @DisplayName("관리자용 주문 상세 조회하기")
+    @MockUser(role = UserRoleEnum.MASTER)
+    void getOrderDetail() throws Exception {
+        //given
+        String orderId = "3e678a43-41b1-4a35-97fb-4ad686308074";
+        String username = "user1";
+        OrderGetResponseDto response = OrderGetResponseDto.builder()
+                .orderId(UUID.fromString(orderId))
+                .username(username)
+                .finalPay(10000)
+                .discountAmount(0)
+                .discountRate(0)
+                .build();
+
+        //when
+        when(orderService.getOrderDetail(any(), any())).thenReturn(response);
+
+        //then
+        mvc.perform(get(BASE_URL + "/orders/admin/{orderId}", orderId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderId").exists())
+                .andExpect(jsonPath("$.username").exists());
     }
 }
