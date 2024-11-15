@@ -60,17 +60,21 @@ public class BasketService {
     }
 
 
+    @Transactional
     public BasketResponseDto removeProductFromBasket(String username, UUID basketId) {
         //유저 유효성 검사
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         //장바구니 유효성 검사
         Basket basket = basketRepository.findById(basketId).orElseThrow(() ->
                 new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
+
         //유저와 장바구니 유저 체크
         checkBasketUser(user, basket);
 
         basketRepository.delete(basket);
+
         return BasketResponseDto.fromBasket(basket);
     }
 

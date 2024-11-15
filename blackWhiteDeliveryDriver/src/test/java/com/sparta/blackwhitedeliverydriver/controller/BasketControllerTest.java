@@ -101,7 +101,7 @@ class BasketControllerTest {
     }
 
     @Test
-    @DisplayName("장바구니 빼기")
+    @DisplayName("장바구니 빼기 성공")
     @MockUser(role = UserRoleEnum.CUSTOMER)
     void removeProductFromBasket_success() throws Exception {
         //given
@@ -112,10 +112,25 @@ class BasketControllerTest {
         when(basketService.removeProductFromBasket(any(), any())).thenReturn(response);
 
         //then
-        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", basketId.toString())
-                        .with(csrf()))
+        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", basketId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.basketId").exists());
+    }
+
+    @Test
+    @DisplayName("장바구니 빼기 실패 : 허용하지 않은 권한으로 호출")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void removeProductFromBasket_fail() throws Exception {
+        //given
+        UUID basketId = UUID.randomUUID();
+        BasketResponseDto response = new BasketResponseDto(basketId);
+
+        //when
+        when(basketService.removeProductFromBasket(any(), any())).thenReturn(response);
+
+        //then
+        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", basketId.toString()))
+                .andExpect(status().isForbidden());
     }
 
     @Test

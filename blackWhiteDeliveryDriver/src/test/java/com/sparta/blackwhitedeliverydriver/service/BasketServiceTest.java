@@ -275,17 +275,16 @@ class BasketServiceTest {
     void removeProductFromBasket_success() {
         //given
         UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
         String username = "user";
-        String storename = "storename";
+        String storeName = "store";
         User user = User.builder()
                 .role(UserRoleEnum.CUSTOMER)
                 .username(username)
                 .build();
         Store store = Store.builder()
                 .storeId(storeId)
-                .storeName(storename)
+                .storeName(storeName)
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
@@ -322,9 +321,8 @@ class BasketServiceTest {
         when(basketRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.removeProductFromBasket(username, basketId);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.removeProductFromBasket(username, basketId));
         assertEquals(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
@@ -335,13 +333,11 @@ class BasketServiceTest {
         UUID basketId = UUID.randomUUID();
         String username = "user";
 
-        //when
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.removeProductFromBasket(username, basketId);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.removeProductFromBasket(username, basketId));
         assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
@@ -350,11 +346,10 @@ class BasketServiceTest {
     void removeProductFromBasket_fail3() {
         //given
         UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
         String username1 = "user1";
         String username2 = "user2";
-        String storename = "storename";
+        String storeName = "store";
         User user1 = User.builder()
                 .role(UserRoleEnum.CUSTOMER)
                 .username(username1)
@@ -365,7 +360,7 @@ class BasketServiceTest {
                 .build();
         Store store = Store.builder()
                 .storeId(storeId)
-                .storeName(storename)
+                .storeName(storeName)
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
@@ -378,9 +373,8 @@ class BasketServiceTest {
         given(basketRepository.findById(any())).willReturn(Optional.ofNullable(basket));
 
         //when & then
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            basketService.removeProductFromBasket(username2, basketId);
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> basketService.removeProductFromBasket(username2, basketId));
         assertEquals(BasketExceptionMessage.BASKET_USER_NOT_EQUALS.getMessage(), exception.getMessage());
     }
 
