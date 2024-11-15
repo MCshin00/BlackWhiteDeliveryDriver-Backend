@@ -108,4 +108,8 @@ public class Store extends BaseEntity {
         this.rating += rating;
         this.reviewCnt++;
     }
+
+    public void updateRating(int previousRating, int updatedRating) {
+        this.rating = rating - previousRating + updatedRating;
+    }
 }

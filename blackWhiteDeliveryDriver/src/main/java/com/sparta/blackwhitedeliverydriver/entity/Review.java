@@ -10,6 +10,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,5 +51,10 @@ public class Review extends BaseEntity {
                 .contents(requestDto.getContents())
                 .rating(requestDto.getRating())
                 .build();
+    }
+
+    public void update(String contents, Integer rating) {
+        this.contents = contents;
+        this.rating = rating;
     }
 }
