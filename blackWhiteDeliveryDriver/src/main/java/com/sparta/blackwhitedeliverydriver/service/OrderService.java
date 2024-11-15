@@ -141,7 +141,7 @@ public class OrderService {
         //orderProduct 조회 후 basket 저장
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
         for (OrderProduct orderProduct : orderProducts) {
-            Basket basket = Basket.ofUserAndOrderProduct(user, orderProduct);
+            Basket basket = Basket.ofUserAndOrderProduct(user, null,orderProduct); // 수정이 필요
             basketRepository.save(basket);
         }
 

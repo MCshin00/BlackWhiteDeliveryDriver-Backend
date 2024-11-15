@@ -13,12 +13,14 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
+import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.util.List;
@@ -34,50 +36,66 @@ class BasketServiceTest {
     BasketRepository basketRepository = mock(BasketRepository.class);
     UserRepository userRepository = mock(UserRepository.class);
     StoreRepository storeRepository = mock(StoreRepository.class);
+    ProductRepository productRepository = mock(ProductRepository.class);
 
     @BeforeEach
     public void setUp() {
-        basketService = new BasketService(basketRepository, userRepository, storeRepository);
+        basketService = new BasketService(basketRepository, userRepository, storeRepository, productRepository);
     }
 
     @Test
     @DisplayName("장바구니 담기 성공")
     void addProductToBasket_success() {
         //given
-        String username = "user1";
-        UUID productId = UUID.randomUUID();
-        UUID storeId = UUID.randomUUID();
+        String username = "user";
+        String storeName = "store";
         UUID basketId = UUID.randomUUID();
+        UUID basketId2 = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UUID productId2 = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
         int quantity = 2;
         Store store = Store.builder()
                 .storeId(storeId)
-                .storeName("storename")
+                .storeName(storeName)
+                .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .store(store)
+                .build();
+        Product product2 = Product.builder()
+                .productId(productId2)
+                .store(store)
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
-                .store(store)
-                .quantity(quantity)
+                .product(product)
+                .build();
+        Basket basket2 = Basket.builder()
+                .id(basketId2)
+                .product(product2)
                 .build();
         User user = User.builder()
                 .role(UserRoleEnum.CUSTOMER)
-                .username("user1")
+                .username(username)
                 .build();
         BasketAddRequestDto request = BasketAddRequestDto.builder()
-                .productId(productId)
+                .productId(productId2)
                 .storeId(storeId)
                 .quantity(quantity)
                 .build();
 
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         given(storeRepository.findById(any())).willReturn(Optional.ofNullable(store));
-        given(basketRepository.save(any())).willReturn(basket);
+        given(productRepository.findById(any())).willReturn(Optional.ofNullable(product2));
+        when(basketRepository.findAllByUser(any())).thenReturn(List.of(basket));
+        when(basketRepository.save(any())).thenReturn(basket2);
 
         //when
         BasketResponseDto response = basketService.addProductToBasket(username, request);
 
         //then
-        Assertions.assertEquals(basketId, response.getBasketId());
+        Assertions.assertEquals(basketId2, response.getBasketId());
     }
 
     @Test
@@ -97,9 +115,9 @@ class BasketServiceTest {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        assertThrows(NullPointerException.class, () -> {
-            basketService.addProductToBasket(username, request);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.addProductToBasket(username, request));
+        assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
     @Test
@@ -130,25 +148,146 @@ class BasketServiceTest {
     }
 
     @Test
+    @DisplayName("장바구니 담기 실패3 : 상품이 존재하지 않는 경우")
+    void addProductToBasketToBasket_fail3() {
+        //given
+        String username = "user";
+        String storeName = "store";
+        UUID productId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        int quantity = 2;
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username(username)
+                .build();
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(productId)
+                .storeId(storeId)
+                .quantity(quantity)
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+        given(storeRepository.findById(any())).willReturn(Optional.ofNullable(store));
+        when(productRepository.findById(any())).thenReturn(Optional.empty());
+
+        //when & then
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.addProductToBasket(username, request));
+        assertEquals(exception.getMessage(), "상품을 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("장바구니 담기 실패4 : 상품이 증복된 경우")
+    void addProductToBasketToBasket_fail4() {
+        //given
+        String username = "user";
+        String storeName = "store";
+        UUID productId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        int quantity = 2;
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .build();
+        Basket basket = Basket.builder()
+                .product(product)
+                .build();
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username(username)
+                .build();
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(productId)
+                .storeId(storeId)
+                .quantity(quantity)
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+        given(storeRepository.findById(any())).willReturn(Optional.ofNullable(store));
+        given(productRepository.findById(any())).willReturn(Optional.ofNullable(product));
+        when(basketRepository.findAllByUser(any())).thenReturn(List.of(basket));
+
+        //when & then
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> basketService.addProductToBasket(username, request));
+        assertEquals(BasketExceptionMessage.BASKET_DUPLICATED.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("장바구니 담기 실패5 : 점포이 다른 경우")
+    void addProductToBasketToBasket_fail5() {
+        //given
+        String username = "user";
+        String storeName = "store";
+        UUID productId = UUID.randomUUID();
+        UUID productId2 = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        UUID storeId2 = UUID.randomUUID();
+        int quantity = 2;
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
+        Store store2 = Store.builder()
+                .storeId(storeId2)
+                .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .store(store)
+                .build();
+        Product product2 = Product.builder()
+                .productId(productId2)
+                .store(store2)
+                .build();
+        Basket basket = Basket.builder()
+                .product(product)
+                .build();
+        User user = User.builder()
+                .role(UserRoleEnum.CUSTOMER)
+                .username(username)
+                .build();
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(product2.getProductId())
+                .storeId(storeId)
+                .quantity(quantity)
+                .build();
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
+        given(storeRepository.findById(any())).willReturn(Optional.ofNullable(store));
+        given(productRepository.findById(any())).willReturn(Optional.of(product2));
+        when(basketRepository.findAllByUser(any())).thenReturn(List.of(basket));
+
+        //when & then
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> basketService.addProductToBasket(username, request));
+        assertEquals(BasketExceptionMessage.BASKET_DIFFERENT_STORE.getMessage(), exception.getMessage());
+    }
+
+    @Test
     @DisplayName("장바구니 빼기 성공")
     void removeProductFromBasket_success() {
         //given
         UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
         String username = "user";
-        String storename = "storename";
+        String storeName = "store";
         User user = User.builder()
                 .role(UserRoleEnum.CUSTOMER)
                 .username(username)
                 .build();
         Store store = Store.builder()
                 .storeId(storeId)
-                .storeName(storename)
+                .storeName(storeName)
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(2)
                 .user(user)
@@ -182,9 +321,8 @@ class BasketServiceTest {
         when(basketRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.removeProductFromBasket(username, basketId);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.removeProductFromBasket(username, basketId));
         assertEquals(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
@@ -195,13 +333,11 @@ class BasketServiceTest {
         UUID basketId = UUID.randomUUID();
         String username = "user";
 
-        //when
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.removeProductFromBasket(username, basketId);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.removeProductFromBasket(username, basketId));
         assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
@@ -210,11 +346,10 @@ class BasketServiceTest {
     void removeProductFromBasket_fail3() {
         //given
         UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
         String username1 = "user1";
         String username2 = "user2";
-        String storename = "storename";
+        String storeName = "store";
         User user1 = User.builder()
                 .role(UserRoleEnum.CUSTOMER)
                 .username(username1)
@@ -225,11 +360,10 @@ class BasketServiceTest {
                 .build();
         Store store = Store.builder()
                 .storeId(storeId)
-                .storeName(storename)
+                .storeName(storeName)
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(2)
                 .user(user1)
@@ -239,9 +373,8 @@ class BasketServiceTest {
         given(basketRepository.findById(any())).willReturn(Optional.ofNullable(basket));
 
         //when & then
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            basketService.removeProductFromBasket(username2, basketId);
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> basketService.removeProductFromBasket(username2, basketId));
         assertEquals(BasketExceptionMessage.BASKET_USER_NOT_EQUALS.getMessage(), exception.getMessage());
     }
 
@@ -249,12 +382,13 @@ class BasketServiceTest {
     @DisplayName("장바구니 조회 성공")
     void getBaskets() {
         //given
-        String username = "user1";
-        String storeName = "storeName";
+        String username = "user";
+        String storeName = "store";
+        String productName = "product";
+        Integer quantity = 2;
         UUID basketId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
-        Integer quantity = 2;
         User user = User.builder()
                 .role(UserRoleEnum.CUSTOMER)
                 .username(username)
@@ -263,11 +397,15 @@ class BasketServiceTest {
                 .storeId(storeId)
                 .storeName(storeName)
                 .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .name(productName)
+                .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
-                .quantity(2)
+                .product(product)
+                .quantity(quantity)
                 .user(user)
                 .build();
         BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
@@ -295,9 +433,7 @@ class BasketServiceTest {
         given(userRepository.findById(any())).willReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.getBaskets(username);
-        });
+        Exception exception = assertThrows(NullPointerException.class, () -> basketService.getBaskets(username));
         assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
@@ -308,7 +444,6 @@ class BasketServiceTest {
         String username = "user1";
         String storeName = "storeName";
         UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
         Integer quantity = 3;
         User user = User.builder()
@@ -321,7 +456,6 @@ class BasketServiceTest {
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(2)
                 .user(user)
@@ -340,6 +474,7 @@ class BasketServiceTest {
 
         //then
         Assertions.assertEquals(basketId, response.getBasketId());
+        assert basket != null;
         assertEquals(quantity, basket.getQuantity());
     }
 
@@ -362,9 +497,8 @@ class BasketServiceTest {
         when(basketRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.updateBasket("user1", request);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.updateBasket("user1", request));
         assertEquals(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
@@ -380,20 +514,19 @@ class BasketServiceTest {
                 .build();
         when(userRepository.findById(any())).thenReturn(Optional.empty());
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.updateBasket("user1", request);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.updateBasket("user1", request));
+        assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
     @Test
     @DisplayName("장바구니 수정 실패3 : 장바구니 유저와 api 호출한 유저가 일치하지 않는 경우")
     void updateBasket_fail3() {
         //given
-        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
-        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        UUID basketId = UUID.randomUUID();
         Integer quantity = 2;
         BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
-                .basketId(UUID.fromString(basketId))
+                .basketId(basketId)
                 .quantity(quantity)
                 .build();
         User user = User.builder()
@@ -405,8 +538,7 @@ class BasketServiceTest {
                 .username("user2")
                 .build();
         Basket basket = Basket.builder()
-                .id(UUID.fromString(basketId))
-                .productId(UUID.fromString(productId))
+                .id(basketId)
                 .quantity(quantity)
                 .user(user)
                 .build();
@@ -416,8 +548,6 @@ class BasketServiceTest {
         given(basketRepository.save(any())).willReturn(basket);
 
         //when & then
-        assertThrows(IllegalArgumentException.class, () -> {
-            basketService.updateBasket("user2", request);
-        });
+        assertThrows(IllegalArgumentException.class, () -> basketService.updateBasket("user2", request));
     }
 }
