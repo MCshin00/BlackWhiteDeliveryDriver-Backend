@@ -65,7 +65,6 @@ class OrderServiceTest {
         Basket basket = Basket.builder()
                 .id(basketId)
                 .user(user)
-                .productId(productId)
                 .quantity(2)
                 .build();
         Store store = Store.builder()
@@ -401,7 +400,6 @@ class OrderServiceTest {
         Basket basket = Basket.builder()
                 .id(basketId)
                 .user(user)
-                .productId(productId)
                 .quantity(2)
                 .build();
         UUID storeId = UUID.randomUUID();

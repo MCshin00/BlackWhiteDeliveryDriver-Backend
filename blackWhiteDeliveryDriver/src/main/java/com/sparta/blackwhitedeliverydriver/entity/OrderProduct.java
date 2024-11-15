@@ -41,7 +41,7 @@ public class OrderProduct extends BaseEntity{
 
     public static OrderProduct ofBasketAndOrder(Basket basket, Order order){
         return OrderProduct.builder()
-                .product(basket.getProductId()) //product가 없기 때문에 임시값 대입
+                //.product(basket.getProductId()) //product가 없기 때문에 임시값 대입
                 .order(order)
                 .quantity(basket.getQuantity())
                 .price(5000) //product가 없기 때문에 임시값 대입

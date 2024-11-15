@@ -37,7 +37,7 @@ public class BasketService {
                 .orElseThrow(() -> new NullPointerException("점포를 찾을 수 없습니다."));
 
         // 상품이 유효성, 중복 체크
-        Basket basket = Basket.ofUserAndStoreAndRequest(user, store, request);
+        Basket basket = Basket.ofUserAndStoreAndRequest(user, store, null, request);
 
         basket = basketRepository.save(basket);
         return BasketResponseDto.fromBasket(basket);

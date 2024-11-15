@@ -55,7 +55,6 @@ class BasketServiceTest {
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(quantity)
                 .build();
@@ -148,7 +147,6 @@ class BasketServiceTest {
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(2)
                 .user(user)
@@ -229,7 +227,6 @@ class BasketServiceTest {
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(2)
                 .user(user1)
@@ -265,7 +262,6 @@ class BasketServiceTest {
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(2)
                 .user(user)
@@ -321,7 +317,6 @@ class BasketServiceTest {
                 .build();
         Basket basket = Basket.builder()
                 .id(basketId)
-                .productId(productId)
                 .store(store)
                 .quantity(2)
                 .user(user)
@@ -406,7 +401,6 @@ class BasketServiceTest {
                 .build();
         Basket basket = Basket.builder()
                 .id(UUID.fromString(basketId))
-                .productId(UUID.fromString(productId))
                 .quantity(quantity)
                 .user(user)
                 .build();
