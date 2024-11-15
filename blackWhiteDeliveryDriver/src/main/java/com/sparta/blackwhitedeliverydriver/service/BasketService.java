@@ -82,8 +82,10 @@ public class BasketService {
         // 유저 유효성 검증
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         // 유저, 장바구니 join
         List<Basket> basketList = basketRepository.findAllByUser(user);
+
         return basketList.stream().map(BasketGetResponseDto::fromBasket).collect(Collectors.toList());
     }
 

@@ -382,12 +382,13 @@ class BasketServiceTest {
     @DisplayName("장바구니 조회 성공")
     void getBaskets() {
         //given
-        String username = "user1";
-        String storeName = "storeName";
+        String username = "user";
+        String storeName = "store";
+        String productName = "product";
+        Integer quantity = 2;
         UUID basketId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
-        Integer quantity = 2;
         User user = User.builder()
                 .role(UserRoleEnum.CUSTOMER)
                 .username(username)
@@ -396,10 +397,15 @@ class BasketServiceTest {
                 .storeId(storeId)
                 .storeName(storeName)
                 .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .name(productName)
+                .build();
         Basket basket = Basket.builder()
                 .id(basketId)
                 .store(store)
-                .quantity(2)
+                .product(product)
+                .quantity(quantity)
                 .user(user)
                 .build();
         BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
@@ -427,9 +433,7 @@ class BasketServiceTest {
         given(userRepository.findById(any())).willReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.getBaskets(username);
-        });
+        Exception exception = assertThrows(NullPointerException.class, () -> basketService.getBaskets(username));
         assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 

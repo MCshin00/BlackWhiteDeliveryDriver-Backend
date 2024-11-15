@@ -134,9 +134,9 @@ class BasketControllerTest {
     }
 
     @Test
-    @DisplayName("장바구니 조회")
+    @DisplayName("장바구니 조회 성공")
     @MockUser(role = UserRoleEnum.CUSTOMER)
-    void getBaskets() throws Exception {
+    void getBaskets_success() throws Exception {
         //given
         UUID basketId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
@@ -156,6 +156,31 @@ class BasketControllerTest {
         //then
         mvc.perform(get(BASE_URL + "/baskets"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 실패 : 허용하지 않은 권한")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void getBaskets_fail() throws Exception {
+        //given
+        UUID basketId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "storeName";
+        Integer quantity = 2;
+        BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
+                .basketId(basketId)
+                .productId(productId)
+                .storeName(storeName)
+                .storeId(storeId)
+                .quantity(quantity)
+                .build();
+        //when
+        when(basketService.getBaskets(any())).thenReturn(List.of(responseDto));
+
+        //then
+        mvc.perform(get(BASE_URL + "/baskets"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
