@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.validation.Valid;
+import java.nio.file.NotLinkException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,13 +55,21 @@ public class StoreService {
     }
 
     public List<StoreResponseDto> getStores() {
-        return storeRepository.findAll().stream().map(StoreResponseDto::new).toList();
+        List<Store> storeList = storeRepository.findAll();
+        List<StoreResponseDto> storeResponseDtoList = new ArrayList<>();
+
+        for (Store store : storeList) {
+            storeResponseDtoList.add(StoreResponseDto.from(store));
+        }
+
+        return storeResponseDtoList;
     }
 
     public StoreResponseDto getStore(UUID storeId) {
-        return storeRepository.findById(storeId).map(StoreResponseDto::new).orElseThrow(
+        Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new NullPointerException("해당 점포를 찾을 수 없습니다.")
         );
+        return StoreResponseDto.from(store);
     }
 
     @Transactional
@@ -78,7 +87,7 @@ public class StoreService {
         List<StoreResponseDto> responseDtoList = new ArrayList<>();
 
         for (Store store : storeList) {
-            responseDtoList.add(new StoreResponseDto(store));
+            responseDtoList.add(StoreResponseDto.from(store));
         }
 
         return responseDtoList;

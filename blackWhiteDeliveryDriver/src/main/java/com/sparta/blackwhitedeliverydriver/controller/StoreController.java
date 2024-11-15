@@ -72,9 +72,7 @@ public class StoreController {
         }
 
         // 점포 수정
-        storeService.updateStore(storeId, requestDto, userDetails);
-
-        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
+        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeService.updateStore(storeId, requestDto, userDetails));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }

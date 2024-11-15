@@ -29,8 +29,7 @@ public class ProductService {
         List<ProductResponseDto> productResponseDtoList = new ArrayList<>();
 
         for (Product product : productList) {
-            ProductResponseDto productResponseDto = ProductResponseDto.from(product);
-            productResponseDtoList.add(productResponseDto);
+            productResponseDtoList.add(ProductResponseDto.from(product));
         }
 
         return productResponseDtoList;
