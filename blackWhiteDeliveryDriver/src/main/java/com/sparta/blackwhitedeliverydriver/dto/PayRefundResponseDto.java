@@ -1,6 +1,5 @@
 package com.sparta.blackwhitedeliverydriver.dto;
 
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderResponseDto {
-    private UUID orderId;
+public class PayRefundResponseDto {
+    private String message;
 }

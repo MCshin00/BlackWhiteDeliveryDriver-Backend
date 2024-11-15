@@ -51,6 +51,8 @@ public class Order extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private OrderStatusEnum status;
 
+    private String tid;
+
     public static Order ofUserAndStore(User user, Store store) {
         return Order.builder()
                 .user(user)
@@ -68,5 +70,9 @@ public class Order extends BaseEntity {
 
     public void updateStatus(OrderStatusEnum status) {
         this.status = status;
+    }
+
+    public void updateTid(String tid) {
+        this.tid = tid;
     }
 }

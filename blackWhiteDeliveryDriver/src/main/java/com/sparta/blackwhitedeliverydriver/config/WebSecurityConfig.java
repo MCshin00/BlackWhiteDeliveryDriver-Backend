@@ -65,6 +65,10 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
                         .requestMatchers("/api/v1/users/signup").anonymous() // 회원가입은 인증처리가 되지 않은 대상에게만 허가
+                        .requestMatchers("/payment").permitAll()
+                        .requestMatchers("/payment/success").permitAll()
+                        .requestMatchers("/payment/fail").permitAll()
+                        .requestMatchers("/payment/cancel").permitAll()
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 

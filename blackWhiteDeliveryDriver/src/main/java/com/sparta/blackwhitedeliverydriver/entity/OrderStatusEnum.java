@@ -8,7 +8,8 @@ public enum OrderStatusEnum {
     PENDING,       // 주문 대기 상태
     ACCEPTED,     // 주문 수락 상태
     REJECTED,     // 주문 거절 상태
-    COMPLETED;   // 주문 완료 상태
+    COMPLETED,
+    CANCEL;   // 주문 완료 상태
 
     public String getStatus() {
         return this.name();

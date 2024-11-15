@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 성공</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // URL에서 pg_token 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            const pgToken = urlParams.get('pg_token');
+
+            // 로컬 스토리지에서 tid와 jwt 가져오기
+            const tid = localStorage.getItem('tid');
+            const jwtToken = localStorage.getItem('jwt'); // JWT도 로컬 스토리지에서 가져오기
+
+            $("#completePaymentBtn").click(function () {
+                if (!jwtToken) {
+                    alert("JWT Token이 저장되어 있지 않습니다.");
+                    return;
+                }
+
+                // AJAX 요청
+                $.ajax({
+                    type: "GET",
+                    url: "/api/v1/pay/success",
+                    contentType: "application/json",
+                    dataType: "json",
+                    headers: {
+                        Authorization: "Bearer " + jwtToken, // Authorization 헤더에 JWT 토큰 추가
+                    },
+                    data: {
+                        pg_token: pgToken,
+                        tid: tid
+                    },
+                    success: function (result) {
+                        alert("결제가 완료되었습니다!");
+                        console.log("결제 승인 응답:", result);
+                        // 추가적인 처리 (예: 다른 페이지로 리다이렉트)
+                    },
+                    error: function (error) {
+                        console.log("결제 승인 요청 중 오류 발생");
+                        console.log(error);
+                        alert("결제 승인 요청 중 오류가 발생했습니다.");
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div style="display:flex; flex-direction:column; align-items: center; text-align: center;">
+    <h1>결제 완료 페이지</h1>
+    <button id="completePaymentBtn" type="button">결제 완료</button>
+</div>
+</body>
+</html>
