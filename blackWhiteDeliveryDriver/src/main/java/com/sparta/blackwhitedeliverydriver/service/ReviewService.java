@@ -67,7 +67,7 @@ public class ReviewService {
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Review> reviewPage = reviewRepository.findAllByOrderStoreStoreId(storeId, pageable);
+        Page<Review> reviewPage = reviewRepository.findAllByOrderStoreStoreIdAndDeletedByIsNullAndDeletedDateIsNull(storeId, pageable);
 
         return reviewPage.map(ReviewResponseDto::from);
     }
@@ -82,7 +82,7 @@ public class ReviewService {
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Review> reviewPage = reviewRepository.findAllByOrderUserUsername(username, pageable);
+        Page<Review> reviewPage = reviewRepository.findAllByOrderUserUsernameAndDeletedByIsNullAndDeletedDateIsNull(username, pageable);
 
         return reviewPage.map(ReviewResponseDto::from);
     }
@@ -91,6 +91,8 @@ public class ReviewService {
     public ReviewResponseDto getReview(UUID reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NullPointerException(ReviewExceptionMessage.REVIEW_NOT_FOUND.getMessage()));
+
+        checkDeletedReview(review);
 
         return ReviewResponseDto.from(review);
     }
@@ -105,6 +107,8 @@ public class ReviewService {
 
         Store store = storeRepository.findById(review.getOrder().getStore().getStoreId())
                 .orElseThrow(() -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage()));
+
+        checkDeletedReview(review);
 
         if (!review.getCreatedBy().equals(user.getUsername())) {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
@@ -128,6 +132,8 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NullPointerException(ReviewExceptionMessage.REVIEW_NOT_FOUND.getMessage()));
 
+        checkDeletedReview(review);
+
         if (!review.getCreatedBy().equals(user.getUsername())) {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
@@ -138,5 +144,11 @@ public class ReviewService {
         reviewRepository.save(review);
 
         return new ReviewIdResponseDto(review.getId());
+    }
+
+    private void checkDeletedReview(Review review) {
+        if (review.getDeletedBy() != null || review.getDeletedDate() != null) {
+            throw new IllegalArgumentException(ReviewExceptionMessage.REVIEW_DELETED.getMessage());
+        }
     }
 }
