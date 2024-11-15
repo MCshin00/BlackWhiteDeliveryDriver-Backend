@@ -19,6 +19,7 @@ public class BasketGetResponseDto {
     private UUID storeId;
     private String storeName;
     private UUID productId;
+    private String productName;
     private Integer quantity;
 
     public static BasketGetResponseDto fromBasket(Basket basket) {
@@ -28,7 +29,8 @@ public class BasketGetResponseDto {
                 .username(basket.getUser().getUsername())
                 .storeId(basket.getStore().getStoreId())
                 .storeName(basket.getStore().getStoreName())
-                .productId(basket.getProductId())
+                .productId(basket.getProduct().getProductId())
+                .productName(basket.getProduct().getName())
                 .quantity(basket.getQuantity())
                 .build();
     }

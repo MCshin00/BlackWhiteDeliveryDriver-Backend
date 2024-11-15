@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -63,6 +67,32 @@ public class UserService {
         }
 
         return UserResponseDto.from(user);
+    }
+
+    public Page<UserResponseDto> searchUser(
+            String keyword, int page, int size, String sortBy, boolean isAsc, String loggedInUsername) {
+
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+
+        // 페이징 처리
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        User loggedInUser = userRepository.findById(loggedInUsername)
+                .orElseThrow(() -> new UsernameNotFoundException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        Page<User> userPage;
+
+        if (loggedInUser.getRole() != UserRoleEnum.MANAGER && loggedInUser.getRole() != UserRoleEnum.MASTER ) {
+            userPage = userRepository.findByUsernameContainingAndDeletedByIsNullAndDeletedDateIsNullAndPublicProfileIsTrue(keyword, pageable);
+        } else {
+            userPage = userRepository.findByUsernameContaining(keyword, pageable);
+        }
+
+        return userPage.map(UserResponseDto::from);
     }
 
     @Transactional

@@ -5,7 +5,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -57,6 +56,8 @@ public class Order extends BaseEntity {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Review review;
 
+    private String tid;
+
     public static Order ofUserAndStore(User user, Store store) {
         return Order.builder()
                 .user(user)
@@ -74,5 +75,9 @@ public class Order extends BaseEntity {
 
     public void updateStatus(OrderStatusEnum status) {
         this.status = status;
+    }
+
+    public void updateTid(String tid) {
+        this.tid = tid;
     }
 }
