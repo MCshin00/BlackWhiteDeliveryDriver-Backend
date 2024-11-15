@@ -48,8 +48,6 @@ public class StoreService {
         );
 
         store.update(requestDto, userDetails);
-        store.setLastModifiedDate(LocalDateTime.now());
-        store.setLastModifiedBy(userDetails.getUsername());
 
         return store.getStoreId();
     }
