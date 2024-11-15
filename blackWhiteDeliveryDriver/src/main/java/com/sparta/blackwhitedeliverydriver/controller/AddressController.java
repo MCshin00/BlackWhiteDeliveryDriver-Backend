@@ -34,7 +34,7 @@ public class AddressController {
     @PostMapping("/")
     public ResponseEntity<?> createAddress(@Valid @RequestBody AddressRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 등록 처리
-        AddressIdResponseDto addressIdResponseDto = addressService.createAddress(requestDto, userDetails.getUser());
+        AddressIdResponseDto addressIdResponseDto = addressService.createAddress(requestDto, userDetails.getUsername());
 
         // 성공 응답으로 201 Created와 addressIdResponseDto 반환
         return ResponseEntity.status(HttpStatus.CREATED).body(addressIdResponseDto);
@@ -45,7 +45,7 @@ public class AddressController {
                                            @PathVariable UUID addressId,
                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 수정 처리
-        AddressIdResponseDto addressIdResponseDto = addressService.updateAddress(requestDto, addressId, userDetails.getUser());
+        AddressIdResponseDto addressIdResponseDto = addressService.updateAddress(requestDto, addressId, userDetails.getUsername());
 
         // 성공 응답으로 200 OK와 addressIdResponseDto 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressIdResponseDto);
@@ -59,7 +59,7 @@ public class AddressController {
             @RequestParam("isAsc") boolean isAsc,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 모든 주소를 가져온다
-        List<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUser(), page-1, size, sortBy, isAsc);
+        List<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUsername(), page-1, size, sortBy, isAsc);
 
         // 성공 응답으로 200 OK와 AddressResponseDto 리스트 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressResponseDtos);
@@ -77,7 +77,7 @@ public class AddressController {
     @PutMapping("/{addressId}/current")
     public ResponseEntity<?> setCurrentAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 현재(기본) 배송지를 지정한다
-        AddressIdResponseDto addressIdResponseDto = addressService.setCurrentAddress(addressId, userDetails.getUser());
+        AddressIdResponseDto addressIdResponseDto = addressService.setCurrentAddress(addressId, userDetails.getUsername());
 
         // 성공 응답으로 200 OK와 addressIdResponseDto 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressIdResponseDto);
@@ -86,7 +86,7 @@ public class AddressController {
     @DeleteMapping("/{addressId}")
     public ResponseEntity<?> deleteAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 삭제 처리(soft-delete)
-        AddressIdResponseDto addressIdResponseDto = addressService.deleteAddress(addressId, userDetails.getUser());
+        AddressIdResponseDto addressIdResponseDto = addressService.deleteAddress(addressId, userDetails.getUsername());
 
         // 성공 응답으로 200 OK와 addressIdResponseDto 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressIdResponseDto);
