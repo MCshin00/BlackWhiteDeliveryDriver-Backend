@@ -15,6 +15,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
@@ -51,30 +52,36 @@ class OrderServiceTest {
     void createOrder() {
         //given
         String username = "user1";
-        String basketId = "0eba37e5-a3bc-4053-bef6-2e087cf1e227";
-        String orderId = "2b6ad274-8f98-44c2-9321-ea0de46b3ec6";
-        String productId = "e7521693-c495-4699-9bc2-7c70d731d214";
-        String orderProductId = "1e217cbf-e3ec-4e85-9f9b-42557c1dd079";
+        String storeName = "storeName";
+        UUID basketId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UUID orderProductId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
         User user = User.builder()
                 .username(username)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
         Basket basket = Basket.builder()
-                .id(UUID.fromString(basketId))
+                .id(basketId)
                 .user(user)
-                .productId(UUID.fromString(productId))
+                .productId(productId)
                 .quantity(2)
                 .build();
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
-                .id(UUID.fromString(orderId))
+                .id(orderId)
                 .user(user)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .build();
         OrderProduct orderProduct = OrderProduct.builder()
-                .id(UUID.fromString(orderProductId))
+                .id(orderProductId)
                 .order(order)
-                .product(UUID.fromString(productId))
+                .product(productId)
                 .quantity(2)
                 .price(5000)
                 .build();
@@ -88,7 +95,7 @@ class OrderServiceTest {
         OrderResponseDto response = orderService.createOrder(username);
         //then
         Assertions.assertEquals(10000, order.getFinalPay());
-        Assertions.assertEquals(orderId, response.getOrderId().toString());
+        Assertions.assertEquals(orderId, response.getOrderId());
     }
 
     @Test
@@ -129,16 +136,22 @@ class OrderServiceTest {
     @DisplayName("주문 상세 조회 성공")
     void getOrderDetail_success() {
         //given
-        UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
+        UUID orderId = UUID.randomUUID();
         String username = "user1";
         User user = User.builder()
                 .username(username)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "store";
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .discountAmount(0)
                 .discountRate(0)
@@ -209,10 +222,16 @@ class OrderServiceTest {
                 .username(username2)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "store";
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .discountAmount(0)
                 .discountRate(0)
@@ -239,10 +258,16 @@ class OrderServiceTest {
                 .username(username)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "store";
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .discountAmount(0)
                 .discountRate(0)
@@ -286,10 +311,16 @@ class OrderServiceTest {
                 .username(username)
                 .role(UserRoleEnum.OWNER)
                 .build();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "store";
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .discountAmount(0)
                 .discountRate(0)
@@ -373,10 +404,16 @@ class OrderServiceTest {
                 .productId(productId)
                 .quantity(2)
                 .build();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "store";
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .build();
         OrderProduct orderProduct = OrderProduct.builder()
@@ -453,10 +490,16 @@ class OrderServiceTest {
                 .username(username2)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "store";
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
                 .id(orderId)
                 .user(user1)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .build();
 
@@ -480,10 +523,16 @@ class OrderServiceTest {
                 .username(username)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "store";
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName(storeName)
+                .build();
         Order order = Order.builder()
                 .id(orderId)
                 .user(user)
-                .store(UUID.randomUUID())
+                .store(store)
                 .status(OrderStatusEnum.ACCEPTED)
                 .build();
 

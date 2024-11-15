@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
@@ -47,8 +48,8 @@ public class OrderService {
         checkBasketCount(baskets);
 
         //order 엔티티 생성 및 저장
-        UUID storeId = UUID.randomUUID();
-        Order order = Order.fromUser(user, storeId);
+        Store store = baskets.get(0).getStore();
+        Order order = Order.ofUserAndStore(user, store);
         order = orderRepository.save(order);
 
         //연관관계 테이블에 장바구니 품목 저장

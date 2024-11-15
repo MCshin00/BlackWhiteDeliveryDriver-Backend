@@ -16,7 +16,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
 
 @Entity
 @Getter
@@ -34,8 +33,9 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
-    private UUID store; //임시 컬럼
+    @ManyToOne
+    @JoinColumn(name = "store_id")
+    private Store store;
 
     @Column(nullable = false)
     @ColumnDefault("0")
@@ -51,7 +51,7 @@ public class Order extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private OrderStatusEnum status;
 
-    public static Order fromUser(User user, UUID store) {
+    public static Order ofUserAndStore(User user, Store store) {
         return Order.builder()
                 .user(user)
                 .store(store)
