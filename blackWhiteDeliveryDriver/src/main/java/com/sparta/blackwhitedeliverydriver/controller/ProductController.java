@@ -22,9 +22,9 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/")
-    public ResponseEntity<?> getProducts(@PathVariable("storeId") UUID storeId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<?> getProducts(@PathVariable("storeId") UUID storeId) {
         // 해당 가게의 모든 음식 조회
-        List<ProductResponseDto> productResponseDtoList = productService.getProducts(storeId, userDetails);
+        List<ProductResponseDto> productResponseDtoList = productService.getProducts(storeId);
         return ResponseEntity.status(HttpStatus.OK).body(productResponseDtoList);
     }
 }

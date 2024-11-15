@@ -21,7 +21,7 @@ public class ProductService {
     private final StoreRepository storeRepository;
     private final ProductRepository productRepository;
 
-    public List<ProductResponseDto> getProducts(UUID storeId, UserDetailsImpl userDetails) {
+    public List<ProductResponseDto> getProducts(UUID storeId) {
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 점포입니다.")
         );
