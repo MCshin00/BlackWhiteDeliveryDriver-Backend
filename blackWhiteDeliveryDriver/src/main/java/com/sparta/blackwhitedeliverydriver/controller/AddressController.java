@@ -32,7 +32,7 @@ public class AddressController {
     private final AddressService addressService;
 
     @PostMapping("/")
-    public ResponseEntity<?> createAddress(@Valid @RequestBody AddressRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<AddressIdResponseDto> createAddress(@Valid @RequestBody AddressRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 등록 처리
         AddressIdResponseDto addressIdResponseDto = addressService.createAddress(requestDto, userDetails.getUsername());
 
@@ -41,7 +41,7 @@ public class AddressController {
     }
 
     @PutMapping("/{addressId}")
-    public ResponseEntity<?> updateAddress(@Valid @RequestBody AddressRequestDto requestDto,
+    public ResponseEntity<AddressIdResponseDto> updateAddress(@Valid @RequestBody AddressRequestDto requestDto,
                                            @PathVariable UUID addressId,
                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 수정 처리
@@ -52,7 +52,7 @@ public class AddressController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getAllAddresses(
+    public ResponseEntity<List<AddressResponseDto>> getAllAddresses(
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam("sortBy") String sortBy,
@@ -66,7 +66,7 @@ public class AddressController {
     }
 
     @GetMapping("/current")
-    public ResponseEntity<?> getCurrentAddress(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<AddressResponseDto> getCurrentAddress(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 현재(기본) 배송지를 가져온다
         AddressResponseDto responseDto = addressService.getCurrentAddress(userDetails.getUsername());
 
@@ -75,7 +75,7 @@ public class AddressController {
     }
 
     @PutMapping("/{addressId}/current")
-    public ResponseEntity<?> setCurrentAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<AddressIdResponseDto> setCurrentAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 현재(기본) 배송지를 지정한다
         AddressIdResponseDto addressIdResponseDto = addressService.setCurrentAddress(addressId, userDetails.getUsername());
 
@@ -84,7 +84,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/{addressId}")
-    public ResponseEntity<?> deleteAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<AddressIdResponseDto> deleteAddress(@PathVariable UUID addressId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 주소 삭제 처리(soft-delete)
         AddressIdResponseDto addressIdResponseDto = addressService.deleteAddress(addressId, userDetails.getUsername());
 
