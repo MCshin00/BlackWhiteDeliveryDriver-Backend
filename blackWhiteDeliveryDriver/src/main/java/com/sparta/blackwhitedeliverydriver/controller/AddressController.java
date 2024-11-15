@@ -6,10 +6,10 @@ import com.sparta.blackwhitedeliverydriver.dto.AddressResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.AddressService;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -52,14 +52,14 @@ public class AddressController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<AddressResponseDto>> getAllAddresses(
+    public ResponseEntity<Page<AddressResponseDto>> getAllAddresses(
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam("sortBy") String sortBy,
             @RequestParam("isAsc") boolean isAsc,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자의 모든 주소를 가져온다
-        List<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUsername(), page-1, size, sortBy, isAsc);
+        Page<AddressResponseDto> addressResponseDtos = addressService.getAllAddresses(userDetails.getUsername(), page-1, size, sortBy, isAsc);
 
         // 성공 응답으로 200 OK와 AddressResponseDto 리스트 반환
         return ResponseEntity.status(HttpStatus.OK).body(addressResponseDtos);

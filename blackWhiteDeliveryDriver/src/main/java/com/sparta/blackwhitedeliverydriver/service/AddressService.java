@@ -10,8 +10,6 @@ import com.sparta.blackwhitedeliverydriver.repository.AddressRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -61,7 +59,7 @@ public class AddressService {
         return new AddressIdResponseDto(address.getId());
     }
 
-    public List<AddressResponseDto> getAllAddresses(String username, int page, int size, String sortBy, boolean isAsc) {
+    public Page<AddressResponseDto> getAllAddresses(String username, int page, int size, String sortBy, boolean isAsc) {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
@@ -76,13 +74,8 @@ public class AddressService {
 
         // 페이징이 적용된 Address 리스트를 가져온다
         Page<Address> addressPage = addressRepository.findAllByUserAndDeletedByIsNullAndDeletedDateIsNull(user, pageable);
-        List<AddressResponseDto> addressResponseDtos = new ArrayList<>();
 
-        for (Address address : addressPage) {
-            addressResponseDtos.add(AddressResponseDto.from(address));
-        }
-
-        return addressResponseDtos;
+        return addressPage.map(AddressResponseDto::from);
     }
 
     public AddressResponseDto getCurrentAddress(String username) {
