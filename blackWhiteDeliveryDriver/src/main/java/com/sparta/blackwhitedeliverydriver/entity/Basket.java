@@ -31,6 +31,10 @@ public class Basket extends BaseEntity {
     @JoinColumn(name = "user_id")
     User user;
 
+    @ManyToOne //원래 음식 fk 만 둬서 점포 접근하려고 했지만 점포가 먼저 생겨 하나 생성했습니다.
+    @JoinColumn(name = "store_id")
+    private Store store;
+
     private UUID productId; // 임시 컬럼
 
     @Column(nullable = false)
@@ -40,6 +44,15 @@ public class Basket extends BaseEntity {
         return Basket.builder()
                 .productId(orderProduct.getProduct())
                 .quantity(orderProduct.getQuantity())
+                .user(user)
+                .build();
+    }
+
+    public static Basket ofUserAndStoreAndRequest(User user, Store store, BasketAddRequestDto requestDto) {
+        return Basket.builder()
+                .productId(requestDto.getProductId())
+                .store(store)
+                .quantity(requestDto.getQuantity())
                 .user(user)
                 .build();
     }

@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 public class BasketGetResponseDto {
     private UUID basketId;
     private String username;
+    private UUID storeId;
+    private String storeName;
     private UUID productId;
     private Integer quantity;
 
@@ -24,6 +26,8 @@ public class BasketGetResponseDto {
                 .builder()
                 .basketId(basket.getId())
                 .username(basket.getUser().getUsername())
+                .storeId(basket.getStore().getStoreId())
+                .storeName(basket.getStore().getStoreName())
                 .productId(basket.getProductId())
                 .quantity(basket.getQuantity())
                 .build();

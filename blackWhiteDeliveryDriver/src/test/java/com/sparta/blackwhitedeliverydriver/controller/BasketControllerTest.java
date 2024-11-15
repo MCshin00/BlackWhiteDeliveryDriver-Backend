@@ -47,20 +47,22 @@ class BasketControllerTest {
     @MockUser(role = UserRoleEnum.CUSTOMER)
     void addProductToBasket_success() throws Exception {
         //given
-        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
-        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+        UUID productId = UUID.randomUUID();
+        UUID basketId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
         int quantity = 2;
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(productId)
+                .storeId(storeId)
+                .quantity(quantity)
+                .build();
+        BasketResponseDto response = new BasketResponseDto(basketId);
 
         //when
-        when(basketService.addProductToBasket(any(), any())).thenReturn(BasketResponseDto.builder()
-                .basketId(UUID.fromString(basketId))
-                .build());
+        when(basketService.addProductToBasket(any(), any())).thenReturn(response);
 
         //then
-        String body = mapper.writeValueAsString(BasketAddRequestDto.builder()
-                .productId(UUID.fromString(productId))
-                .quantity(quantity)
-                .build());
+        String body = mapper.writeValueAsString(request);
         mvc.perform(post(BASE_URL + "/baskets")
                         .with(csrf())
                         .content(body)
@@ -74,15 +76,14 @@ class BasketControllerTest {
     @MockUser(role = UserRoleEnum.CUSTOMER)
     void removeProductFromBasket_success() throws Exception {
         //given
-        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+        UUID basketId = UUID.randomUUID();
+        BasketResponseDto response = new BasketResponseDto(basketId);
 
         //when
-        when(basketService.removeProductFromBasket(any(), any())).thenReturn(BasketResponseDto.builder()
-                .basketId(UUID.fromString(basketId))
-                .build());
+        when(basketService.removeProductFromBasket(any(), any())).thenReturn(response);
 
         //then
-        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", basketId)
+        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", basketId.toString())
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.basketId").exists());
@@ -93,12 +94,16 @@ class BasketControllerTest {
     @MockUser(role = UserRoleEnum.CUSTOMER)
     void getBaskets() throws Exception {
         //given
-        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
-        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        UUID basketId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        String storeName = "storeName";
         Integer quantity = 2;
         BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
-                .basketId(UUID.fromString(basketId))
-                .productId(UUID.fromString(productId))
+                .basketId(basketId)
+                .productId(productId)
+                .storeName(storeName)
+                .storeId(storeId)
                 .quantity(quantity)
                 .build();
         //when

@@ -5,10 +5,12 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
+import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
@@ -23,26 +25,30 @@ public class BasketService {
 
     private final BasketRepository basketRepository;
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
 
     public BasketResponseDto addProductToBasket(String username, BasketAddRequestDto request) {
         // 유저가 유효성 체크
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
-        // 상품이 유효성, 중복 체크
         // 같은 지점에서 담은 상품인지 체크
+        Store store = storeRepository.findById(request.getStoreId())
+                .orElseThrow(() -> new NullPointerException("점포를 찾을 수 없습니다."));
 
-        Basket basket = basketRepository.save(Basket.ofUserAndRequest(user, request));
+        // 상품이 유효성, 중복 체크
+        Basket basket = Basket.ofUserAndStoreAndRequest(user, store, request);
+
+        basket = basketRepository.save(basket);
         return BasketResponseDto.fromBasket(basket);
     }
 
-    public BasketResponseDto removeProductFromBasket(String username, String basketId) {
-        UUID basketUUID = UUID.fromString(basketId);
+    public BasketResponseDto removeProductFromBasket(String username, UUID basketId) {
         //유저 유효성 검사
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         //장바구니 유효성 검사
-        Basket basket = basketRepository.findById(basketUUID).orElseThrow(() ->
+        Basket basket = basketRepository.findById(basketId).orElseThrow(() ->
                 new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
         //유저와 장바구니 유저 체크
         checkBasketUser(user, basket);
