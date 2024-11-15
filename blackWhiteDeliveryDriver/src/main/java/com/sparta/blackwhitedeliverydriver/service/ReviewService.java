@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.Review;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.ReviewExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.ReviewRepository;
@@ -77,5 +78,13 @@ public class ReviewService {
         Page<Review> reviewPage = reviewRepository.findAllByOrderUserUsername(username, pageable);
 
         return reviewPage.map(ReviewResponseDto::from);
+    }
+
+
+    public ReviewResponseDto getReview(UUID reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException(ReviewExceptionMessage.REVIEW_NOT_FOUND.getMessage()));
+
+        return ReviewResponseDto.from(review);
     }
 }

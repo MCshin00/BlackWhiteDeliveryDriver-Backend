@@ -58,4 +58,13 @@ public class ReviewController {
 
         return ResponseEntity.status(HttpStatus.OK).body(responseDtos);
     }
+
+    @GetMapping("/{reviewId}")
+    public ResponseEntity<ReviewResponseDto> getReview(@PathVariable UUID reviewId) {
+        ReviewResponseDto responseDto = reviewService.getReview(reviewId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+
 }
