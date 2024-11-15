@@ -2,7 +2,6 @@ package com.sparta.blackwhitedeliverydriver.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -184,29 +183,54 @@ class BasketControllerTest {
     }
 
     @Test
-    @DisplayName("장바구니 수정")
+    @DisplayName("장바구니 수정 성공")
     @MockUser(role = UserRoleEnum.CUSTOMER)
-    void updateBasket() throws Exception {
+    void updateBasket_success() throws Exception {
         //given
-        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
+        UUID basketId = UUID.randomUUID();
         int quantity = 2;
-
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(basketId)
+                .build();
         //when
-        when(basketService.updateBasket(any(), any())).thenReturn(BasketResponseDto.builder()
-                .basketId(UUID.fromString(basketId))
-                .build());
+        when(basketService.updateBasket(any(), any())).thenReturn(response);
 
         //then
         String body = mapper.writeValueAsString(BasketUpdateRequestDto.builder()
-                .basketId(UUID.fromString(basketId))
+                .basketId(basketId)
                 .quantity(quantity)
                 .build());
 
         mvc.perform(put(BASE_URL + "/baskets")
                         .content(body)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .with(csrf()))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.basketId").exists());
+    }
+
+    @Test
+    @DisplayName("장바구니 수정 실패 : 허용하지 않은 권한")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void updateBasket_fail() throws Exception {
+        //given
+        UUID basketId = UUID.randomUUID();
+        int quantity = 2;
+
+        //when
+        when(basketService.updateBasket(any(), any()))
+                .thenReturn(BasketResponseDto.builder()
+                        .basketId(basketId)
+                        .build());
+
+        //then
+        String body = mapper.writeValueAsString(BasketUpdateRequestDto.builder()
+                .basketId(basketId)
+                .quantity(quantity)
+                .build());
+
+        mvc.perform(put(BASE_URL + "/baskets")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 }

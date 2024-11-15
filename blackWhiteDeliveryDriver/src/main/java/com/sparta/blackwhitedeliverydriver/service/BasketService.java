@@ -94,9 +94,11 @@ public class BasketService {
         //유저 유효성 검사
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         //장바구니 유효성 검사
         Basket basket = basketRepository.findById(request.getBasketId()).orElseThrow(() ->
                 new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
+
         //장바구니 유저와 api 호출 유저 체크
         checkBasketUser(user, basket);
 

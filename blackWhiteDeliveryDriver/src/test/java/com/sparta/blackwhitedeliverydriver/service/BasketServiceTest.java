@@ -444,7 +444,6 @@ class BasketServiceTest {
         String username = "user1";
         String storeName = "storeName";
         UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
         Integer quantity = 3;
         User user = User.builder()
@@ -475,6 +474,7 @@ class BasketServiceTest {
 
         //then
         Assertions.assertEquals(basketId, response.getBasketId());
+        assert basket != null;
         assertEquals(quantity, basket.getQuantity());
     }
 
@@ -497,9 +497,8 @@ class BasketServiceTest {
         when(basketRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.updateBasket("user1", request);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.updateBasket("user1", request));
         assertEquals(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
@@ -515,20 +514,19 @@ class BasketServiceTest {
                 .build();
         when(userRepository.findById(any())).thenReturn(Optional.empty());
         //when & then
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            basketService.updateBasket("user1", request);
-        });
+        Exception exception = assertThrows(NullPointerException.class,
+                () -> basketService.updateBasket("user1", request));
+        assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
 
     @Test
     @DisplayName("장바구니 수정 실패3 : 장바구니 유저와 api 호출한 유저가 일치하지 않는 경우")
     void updateBasket_fail3() {
         //given
-        String basketId = "e623f3c2-4b79-4f3a-b876-9d1b5d47a283";
-        String productId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        UUID basketId = UUID.randomUUID();
         Integer quantity = 2;
         BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
-                .basketId(UUID.fromString(basketId))
+                .basketId(basketId)
                 .quantity(quantity)
                 .build();
         User user = User.builder()
@@ -540,7 +538,7 @@ class BasketServiceTest {
                 .username("user2")
                 .build();
         Basket basket = Basket.builder()
-                .id(UUID.fromString(basketId))
+                .id(basketId)
                 .quantity(quantity)
                 .user(user)
                 .build();
@@ -550,8 +548,6 @@ class BasketServiceTest {
         given(basketRepository.save(any())).willReturn(basket);
 
         //when & then
-        assertThrows(IllegalArgumentException.class, () -> {
-            basketService.updateBasket("user2", request);
-        });
+        assertThrows(IllegalArgumentException.class, () -> basketService.updateBasket("user2", request));
     }
 }
