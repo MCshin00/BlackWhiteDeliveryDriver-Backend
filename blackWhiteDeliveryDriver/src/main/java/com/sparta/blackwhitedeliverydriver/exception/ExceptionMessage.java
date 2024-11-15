@@ -18,6 +18,7 @@ public enum ExceptionMessage {
     NOT_ALLOEWD_ROLE("일반 사용자는 CUSTOMER 또는 OWNER로만 가입할 수 있습니다."),
     NOT_ALLOWED_API("접근 권한이 없습니다."),
     ADDRESS_NOT_FOUND("해당 주소가 존재하지 않습니다."),
-    ADDRESS_DELETED("삭제된 주소입니다.");
+    ADDRESS_DELETED("삭제된 주소입니다."),
+    CURRNET_ADDRESS_NOT_FOUND("현재(기본) 배송지로 지정한 배송지가 없습니다.");
     private final String message;
 }
