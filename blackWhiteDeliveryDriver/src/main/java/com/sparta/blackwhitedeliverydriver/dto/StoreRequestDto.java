@@ -12,7 +12,7 @@ public class StoreRequestDto {
     @NotBlank
     private String storeName;
     @NotBlank
-    @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "전화번호는 010-0000-0000 형식이어야 합니다.")
+    @Pattern(regexp = "^[0-9]{11}$")
     private String phoneNumber;
     private LocalTime openTime;
     private LocalTime closeTime;
