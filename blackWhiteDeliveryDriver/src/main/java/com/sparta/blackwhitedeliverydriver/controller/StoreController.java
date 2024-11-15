@@ -3,8 +3,10 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import com.sparta.blackwhitedeliverydriver.dto.StoreIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
+import com.sparta.blackwhitedeliverydriver.entity.Category;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
+import com.sparta.blackwhitedeliverydriver.service.CategoryService;
 import com.sparta.blackwhitedeliverydriver.service.StoreService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StoreController {
 
     private final StoreService storeService;
+    private final CategoryService categoryService;
 
     @GetMapping("/")
     public ResponseEntity<?> getStores(){
@@ -57,6 +60,8 @@ public class StoreController {
         }
         // 점포 등록
         UUID storeId = storeService.createStore(requestDto, userDetails.getUser());
+        // 카테고리 등록
+        UUID categoryId = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
 
         StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
 
