@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.entity;
 
+import com.sparta.blackwhitedeliverydriver.dto.CreateProductRequestDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -42,4 +43,15 @@ public class Product extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_store_id", nullable = false)
     private Store store;
+
+    public static Product from(CreateProductRequestDto requestDto, Store store) {
+        return Product.builder()
+                .name(requestDto.getName())
+                .price(requestDto.getPrice())
+                .isPublic(true)
+                .imgUrl(requestDto.getImgUrl())
+                .productIntro(requestDto.getProductIntro())
+                .store(store)
+                .build();
+    }
 }

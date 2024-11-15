@@ -1,13 +1,15 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.CreateProductRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.ProductResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
+import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
-import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,5 +35,17 @@ public class ProductService {
         }
 
         return productResponseDtoList;
+    }
+
+    @Transactional
+    public UUID createProduct(CreateProductRequestDto requestDto, User user) {
+        // 음식 등록
+        Store store = storeRepository.findById(requestDto.getStoreId()).orElseThrow(
+                () -> new NullPointerException("해당 점포는 존재하지 않습니다.")
+        );
+        Product product = Product.from(requestDto, store);
+        productRepository.save(product);
+
+        return product.getProductId();
     }
 }
