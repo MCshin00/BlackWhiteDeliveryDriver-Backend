@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -77,7 +78,21 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productIdResponseDto);
     }
 
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<?> deleteProduct(@PathVariable UUID productId, @AuthenticationPrincipal UserDetailsImpl userDetails){
+        // OWNER의 가게인지 확인 -> 본인 가게만 수정
+        UUID storeId = productService.findStoreIdByProductId(productId);
+        if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER) || !isStoreOfOwner(storeId, userDetails)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 점포만 수정이 가능합니다.");
+        }
 
+        // 음식 삭제
+        productService.deleteProduct(productId, userDetails);
+
+        ProductIdResponseDto productIdResponseDto = new ProductIdResponseDto(productId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(productIdResponseDto);
+    }
 
     private boolean isStoreOfOwner(UUID storeId, UserDetailsImpl userDetails) {
         String ownerNameOfStore = storeService.getNameOfOwner(storeId);

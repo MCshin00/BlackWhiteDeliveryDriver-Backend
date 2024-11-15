@@ -10,6 +10,7 @@ import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.validation.constraints.Null;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -69,5 +70,15 @@ public class ProductService {
         product.update(requestDto, userDetails);
 
         return product.getProductId();
+    }
+
+    @Transactional
+    public void deleteProduct(UUID productId, UserDetailsImpl userDetails) {
+        Product product = productRepository.findById(productId).orElseThrow(
+                () -> new NullPointerException("존재하지 않는 음식입니다.")
+        );
+
+        product.setDeletedDate(LocalDateTime.now());
+        product.setDeletedBy(userDetails.getUsername());
     }
 }
