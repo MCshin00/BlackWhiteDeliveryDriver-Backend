@@ -10,6 +10,7 @@ import com.sparta.blackwhitedeliverydriver.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -58,6 +59,20 @@ public class UserController {
 
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<UserResponseDto>> searchUser(
+            @RequestParam String keyword,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Page<UserResponseDto> responseDtos = userService.searchUser(
+                keyword, page - 1, size, sortBy, isAsc, userDetails.getUsername());
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseDtos);
     }
 
     @PutMapping("/")
