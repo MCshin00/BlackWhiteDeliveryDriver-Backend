@@ -10,11 +10,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,16 +24,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/baskets")
 @RequiredArgsConstructor
-@Slf4j
+@RequestMapping("/api/v1/baskets")
 public class BasketController {
 
     private final BasketService basketService;
 
     @Secured({"ROLE_CUSTOMER"})
     @PostMapping
-    public ResponseEntity<?> addProductToBasket(@AuthenticationPrincipal UserDetailsImpl userDetails,
+    public ResponseEntity<BasketResponseDto> addProductToBasket(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                 @Valid @RequestBody BasketAddRequestDto request) {
         //장바구니 추가
         BasketResponseDto response = basketService.addProductToBasket(userDetails.getUsername(), request);

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.blackwhitedeliverydriver.config.TestSecurityConfig;
 import com.sparta.blackwhitedeliverydriver.dto.BasketAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
@@ -25,10 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(BasketController.class)
+@Import(TestSecurityConfig.class)
 class BasketControllerTest {
 
     @Autowired
@@ -64,11 +67,37 @@ class BasketControllerTest {
         //then
         String body = mapper.writeValueAsString(request);
         mvc.perform(post(BASE_URL + "/baskets")
-                        .with(csrf())
                         .content(body)
-                        .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(status().isCreated())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.basketId").exists());
+    }
+
+    @Test
+    @DisplayName("장바구니 담기 실패 : 권한이 CUSTOMER 아닌 경우")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void addProductToBasket_fail() throws Exception {
+        //given
+        UUID productId = UUID.randomUUID();
+        UUID basketId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        int quantity = 2;
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(productId)
+                .storeId(storeId)
+                .quantity(quantity)
+                .build();
+        BasketResponseDto response = new BasketResponseDto(basketId);
+
+        //when
+        when(basketService.addProductToBasket(any(), any())).thenReturn(response);
+
+        //then
+        String body = mapper.writeValueAsString(request);
+        mvc.perform(post(BASE_URL + "/baskets")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -28,7 +28,7 @@ public class BasketGetResponseDto {
                 .username(basket.getUser().getUsername())
                 .storeId(basket.getStore().getStoreId())
                 .storeName(basket.getStore().getStoreName())
-                .productId(basket.getProductId())
+                .productId(basket.getProduct().getProductId())
                 .quantity(basket.getQuantity())
                 .build();
     }
