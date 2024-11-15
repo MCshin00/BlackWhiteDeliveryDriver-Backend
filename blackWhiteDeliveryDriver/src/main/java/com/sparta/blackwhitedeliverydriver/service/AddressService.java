@@ -10,8 +10,6 @@ import com.sparta.blackwhitedeliverydriver.repository.AddressRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,7 +29,10 @@ public class AddressService {
     private final UserRepository userRepository;
 
     @Transactional
-    public AddressIdResponseDto createAddress(@Valid AddressRequestDto requestDto, User user) {
+    public AddressIdResponseDto createAddress(@Valid AddressRequestDto requestDto, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = Address.from(requestDto, user);
         addressRepository.save(address);
 
@@ -39,7 +40,10 @@ public class AddressService {
     }
 
     @Transactional
-    public AddressIdResponseDto updateAddress(@Valid AddressRequestDto requestDto, UUID addressId, User user) {
+    public AddressIdResponseDto updateAddress(@Valid AddressRequestDto requestDto, UUID addressId, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -55,7 +59,10 @@ public class AddressService {
         return new AddressIdResponseDto(address.getId());
     }
 
-    public List<AddressResponseDto> getAllAddresses(User user, int page, int size, String sortBy, boolean isAsc) {
+    public Page<AddressResponseDto> getAllAddresses(String username, int page, int size, String sortBy, boolean isAsc) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         if (size != 10 && size != 30 && size != 50) {
             size = 10;
         }
@@ -66,14 +73,9 @@ public class AddressService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // 페이징이 적용된 Address 리스트를 가져온다
-        Page<Address> addressPage = addressRepository.findAllByUserAndNotDeleted(user, pageable);
-        List<AddressResponseDto> addressResponseDtos = new ArrayList<>();
+        Page<Address> addressPage = addressRepository.findAllByUserAndDeletedByIsNullAndDeletedDateIsNull(user, pageable);
 
-        for (Address address : addressPage) {
-            addressResponseDtos.add(AddressResponseDto.from(address));
-        }
-
-        return addressResponseDtos;
+        return addressPage.map(AddressResponseDto::from);
     }
 
     public AddressResponseDto getCurrentAddress(String username) {
@@ -89,7 +91,10 @@ public class AddressService {
     }
 
     @Transactional
-    public AddressIdResponseDto setCurrentAddress(UUID addressId, User user) {
+    public AddressIdResponseDto setCurrentAddress(UUID addressId, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -104,7 +109,10 @@ public class AddressService {
     }
 
     @Transactional
-    public AddressIdResponseDto deleteAddress(UUID addressId, User user) {
+    public AddressIdResponseDto deleteAddress(UUID addressId, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
