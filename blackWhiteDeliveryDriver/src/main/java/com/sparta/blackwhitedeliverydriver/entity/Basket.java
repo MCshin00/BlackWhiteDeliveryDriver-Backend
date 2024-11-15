@@ -36,6 +36,14 @@ public class Basket extends BaseEntity {
     @Column(nullable = false)
     private Integer quantity;
 
+    public static Basket ofUserAndOrderProduct(User user, OrderProduct orderProduct) {
+        return Basket.builder()
+                .productId(orderProduct.getProduct())
+                .quantity(orderProduct.getQuantity())
+                .user(user)
+                .build();
+    }
+
     public void updateBasketOfQuantity(Integer quantity) {
         this.quantity = quantity;
     }
