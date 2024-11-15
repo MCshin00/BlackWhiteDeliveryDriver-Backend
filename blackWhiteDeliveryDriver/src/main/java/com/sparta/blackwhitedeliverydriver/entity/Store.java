@@ -1,69 +1,95 @@
 package com.sparta.blackwhitedeliverydriver.entity;
 
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
+import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.Valid;
 import java.time.LocalTime;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Getter
-@Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "p_stores")
-public class Store extends StoreTimestamped {
+public class Store extends BaseEntity {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "store_id", updatable = false, nullable = false)
     private UUID storeId;
-
-    @Column(nullable = false, unique = true)
+    @Column(name = "store_name", nullable = false, unique = true)
     private String storeName;
-
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
+    @Column(name = "status", nullable = false)
     private Boolean status = true; // 매장 운영 여부
+    @Column(name = "open_time", nullable = false)
     private LocalTime openTime;
+    @Column(name = "close_time", nullable = false)
     private LocalTime closeTime;
+    @Column(name = "rating", nullable = false)
     private Integer rating = 0; // 매장 평점 합산
+    @Column(name = "review_cnt", nullable = false)
     private Integer reviewCnt = 0;
+    @Column(name = "img_url")
     private String imgUrl;
+    @Column(name = "zip_num", nullable = false)
     private String zipNum;
+    @Column(name = "city", nullable = false)
     private String city;
+    @Column(name = "district", nullable = false)
     private String district;
+    @Column(name = "street_name", nullable = false)
     private String streetName;
+    @Column(name = "street_number", nullable = false)
     private String streetNumber;
+    @Column(name = "detail_addr", nullable = false)
     private String detailAddr;
+    @Column(name = "store_intro", nullable = false)
     private String storeIntro;
+    @Column(name = "is_public", nullable = false)
     private Boolean isPublic = false; // 매장 승인 여부
 
-    public Store(StoreRequestDto requestDto) {
-        this.storeName = requestDto.getStoreName();
-        this.phoneNumber = requestDto.getPhoneNumber();
-        this.openTime = requestDto.getOpenTime();
-        this.closeTime = requestDto.getCloseTime();
-        this.imgUrl = requestDto.getImgUrl();
-        this.zipNum = requestDto.getZipNum();
-        this.city = requestDto.getCity();
-        this.district = requestDto.getDistrict();
-        this.streetName = requestDto.getStreetName();
-        this.streetNumber = requestDto.getStreetNumber();
-        this.detailAddr = requestDto.getDetailAddr();
-        this.storeIntro = requestDto.getStoreIntro();
-        this.isPublic = true;
-        this.rating = 0;
-        this.reviewCnt = 0;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_username", nullable = false)
+    private User user;
+
+    public static Store from(StoreRequestDto requestDto, User user) {
+        return Store.builder()
+                .storeName(requestDto.getStoreName())
+                .phoneNumber(requestDto.getPhoneNumber())
+                .status(true)
+                .openTime(requestDto.getOpenTime())
+                .closeTime(requestDto.getCloseTime())
+                .imgUrl(requestDto.getImgUrl())
+                .zipNum(requestDto.getZipNum())
+                .city(requestDto.getCity())
+                .district(requestDto.getDistrict())
+                .streetName(requestDto.getStreetName())
+                .streetNumber(requestDto.getStreetNumber())
+                .detailAddr(requestDto.getDetailAddr())
+                .storeIntro(requestDto.getStoreIntro())
+                .isPublic(true)
+                .rating(0)
+                .reviewCnt(0)
+                .user(user)
+                .build();
     }
 
-    public void update(StoreRequestDto requestDto) {
+    public void update(StoreRequestDto requestDto, UserDetailsImpl userDetails) {
         this.storeName = requestDto.getStoreName();
         this.phoneNumber = requestDto.getPhoneNumber();
         this.openTime = requestDto.getOpenTime();
