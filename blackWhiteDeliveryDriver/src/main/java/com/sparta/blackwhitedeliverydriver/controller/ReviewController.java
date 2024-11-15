@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,6 +44,7 @@ public class ReviewController {
             @RequestParam("size") int size,
             @RequestParam("sortBy") String sortBy,
             @RequestParam("isAsc") boolean isAsc) {
+
         Page<ReviewResponseDto> responseDtos = reviewService.getAllReviewsByStoreId(
                 storeId, page - 1, size, sortBy, isAsc);
 
@@ -77,6 +79,15 @@ public class ReviewController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         ReviewIdResponseDto responseDto = reviewService.updateReview(reviewId, requestDto, userDetails.getUsername());
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<ReviewIdResponseDto> deleteReview(
+            @PathVariable UUID reviewId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        ReviewIdResponseDto responseDto = reviewService.deleteReview(reviewId, userDetails.getUsername());
 
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

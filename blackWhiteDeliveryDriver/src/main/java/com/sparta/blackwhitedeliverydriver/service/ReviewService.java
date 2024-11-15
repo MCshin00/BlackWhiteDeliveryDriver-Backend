@@ -16,6 +16,7 @@ import com.sparta.blackwhitedeliverydriver.repository.ReviewRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -114,6 +115,26 @@ public class ReviewService {
         storeRepository.save(store);
 
         review.update(requestDto.getContents(), requestDto.getRating());
+        reviewRepository.save(review);
+
+        return new ReviewIdResponseDto(review.getId());
+    }
+
+    @Transactional
+    public ReviewIdResponseDto deleteReview(UUID reviewId, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NullPointerException(ReviewExceptionMessage.REVIEW_NOT_FOUND.getMessage()));
+
+        if (!review.getCreatedBy().equals(user.getUsername())) {
+            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
+        }
+
+        review.setDeletedBy(user.getUsername());
+        review.setDeletedDate(LocalDateTime.now());
+
         reviewRepository.save(review);
 
         return new ReviewIdResponseDto(review.getId());
