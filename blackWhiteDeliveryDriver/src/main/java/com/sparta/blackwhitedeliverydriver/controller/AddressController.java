@@ -52,7 +52,7 @@ public class AddressController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getAllAddress(
+    public ResponseEntity<?> getAllAddresses(
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam("sortBy") String sortBy,

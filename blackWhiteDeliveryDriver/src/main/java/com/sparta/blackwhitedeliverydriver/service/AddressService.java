@@ -66,7 +66,7 @@ public class AddressService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // 페이징이 적용된 Address 리스트를 가져온다
-        Page<Address> addressPage = addressRepository.findAllByUserAndNotDeleted(user, pageable);
+        Page<Address> addressPage = addressRepository.findAllByUserAndDeletedByIsNullAndDeletedDateIsNull(user, pageable);
         List<AddressResponseDto> addressResponseDtos = new ArrayList<>();
 
         for (Address address : addressPage) {
