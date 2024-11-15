@@ -33,7 +33,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequestDto requestDto) {
+    public ResponseEntity<UsernameResponseDto> signup(@Valid @RequestBody SignupRequestDto requestDto) {
         // 사용자 등록 처리
         UsernameResponseDto responseDto = userService.signup(requestDto, null);
 
@@ -43,7 +43,7 @@ public class UserController {
 
     @Secured("ROLE_MASTER")
     @PostMapping("/signup/master")
-    public ResponseEntity<?> signupManager(@Valid @RequestBody SignupRequestDto requestDto) {
+    public ResponseEntity<UsernameResponseDto> signupManager(@Valid @RequestBody SignupRequestDto requestDto) {
         // 사용자 등록 처리
         UsernameResponseDto responseDto = userService.signup(requestDto, UserRoleEnum.MASTER);
 
@@ -52,7 +52,7 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getUserInfo(@RequestParam String username, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<UserResponseDto> getUserInfo(@RequestParam String username, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 가져오기
         UserResponseDto responseDto = userService.getUserInfo(username, userDetails.getUsername());
 
@@ -61,7 +61,7 @@ public class UserController {
     }
 
     @PutMapping("/")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<UsernameResponseDto> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 업데이트
         UsernameResponseDto responseDto = userService.updateUser(requestDto, userDetails.getUsername());
 
@@ -71,7 +71,7 @@ public class UserController {
 
     @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
     @PutMapping("/{username}")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @PathVariable String username) {
+    public ResponseEntity<UsernameResponseDto> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @PathVariable String username) {
         // 사용자 정보 업데이트
         UsernameResponseDto responseDto = userService.updateUser(requestDto, username);
 
@@ -80,7 +80,7 @@ public class UserController {
     }
 
     @DeleteMapping("/")
-    public ResponseEntity<?> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<UsernameResponseDto> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 삭제(soft-delete)
         UsernameResponseDto responseDto = userService.deleteUser(userDetails.getUsername());
 
@@ -90,7 +90,7 @@ public class UserController {
 
     @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
     @DeleteMapping("/{username}")
-    public ResponseEntity<?> deleteUser(@PathVariable String username) {
+    public ResponseEntity<UsernameResponseDto> deleteUser(@PathVariable String username) {
         // 사용자 정보 삭제(soft-delete)
         UsernameResponseDto responseDto = userService.deleteUser(username);
 
