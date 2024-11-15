@@ -103,4 +103,13 @@ public class Store extends BaseEntity {
         this.detailAddr = requestDto.getDetailAddr();
         this.storeIntro = requestDto.getStoreIntro();
     }
+
+    public void updateRating(int rating) {
+        this.rating += rating;
+        this.reviewCnt++;
+    }
+
+    public void updateRating(int previousRating, int updatedRating) {
+        this.rating = rating - previousRating + updatedRating;
+    }
 }
