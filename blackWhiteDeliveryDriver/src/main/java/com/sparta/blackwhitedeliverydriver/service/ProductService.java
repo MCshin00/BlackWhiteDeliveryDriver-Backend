@@ -1,12 +1,15 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.CreateProductRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.ProductRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.ProductResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
+import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
+import jakarta.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +48,25 @@ public class ProductService {
         );
         Product product = Product.from(requestDto, store);
         productRepository.save(product);
+
+        return product.getProductId();
+    }
+
+    public UUID findStoreIdByProductId(UUID productId) {
+        Store store = productRepository.findById(productId).orElseThrow(
+                () -> new NullPointerException("음식 정보를 찾을 수 없습니다.")
+        ).getStore();
+        return store.getStoreId();
+    }
+
+    @Transactional
+    public UUID updateProduct(UUID productId, ProductRequestDto requestDto, UserDetailsImpl userDetails) {
+        // 음식 조회
+        Product product = productRepository.findById(productId).orElseThrow(
+                () -> new NullPointerException("존재하지 않는 음식 정보입니다.")
+        );
+
+        product.update(requestDto, userDetails);
 
         return product.getProductId();
     }

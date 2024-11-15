@@ -1,6 +1,8 @@
 package com.sparta.blackwhitedeliverydriver.entity;
 
 import com.sparta.blackwhitedeliverydriver.dto.CreateProductRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.ProductRequestDto;
+import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -53,5 +55,12 @@ public class Product extends BaseEntity {
                 .productIntro(requestDto.getProductIntro())
                 .store(store)
                 .build();
+    }
+
+    public void update(ProductRequestDto requestDto, UserDetailsImpl userDetails) {
+        this.name = requestDto.getName();
+        this.price = requestDto.getPrice();
+        this.imgUrl = requestDto.getImgUrl();
+        this.productIntro = requestDto.getProductIntro();
     }
 }
