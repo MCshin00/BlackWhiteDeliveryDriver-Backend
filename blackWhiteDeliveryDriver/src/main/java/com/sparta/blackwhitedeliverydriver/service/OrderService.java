@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
@@ -26,8 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderService {
 
     private final BasketRepository basketRepository;
@@ -55,7 +56,8 @@ public class OrderService {
         //연관관계 테이블에 장바구니 품목 저장
         List<OrderProduct> orderProducts = new ArrayList<>();
         for (Basket basket : baskets) {
-            OrderProduct orderProduct = OrderProduct.ofBasketAndOrder(basket, order);
+            Product product = basket.getProduct();
+            OrderProduct orderProduct = OrderProduct.of(basket, product, order);
             orderProducts.add(orderProduct);
         }
         orderProductRepository.saveAll(orderProducts);
@@ -141,7 +143,7 @@ public class OrderService {
         //orderProduct 조회 후 basket 저장
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
         for (OrderProduct orderProduct : orderProducts) {
-            Basket basket = Basket.ofUserAndOrderProduct(user, null,orderProduct); // 수정이 필요
+            Basket basket = Basket.ofUserAndOrderProduct(user, null, orderProduct); // 수정이 필요
             basketRepository.save(basket);
         }
 

@@ -70,7 +70,7 @@ public class OrderController {
     @Secured({"ROLE_CUSTOMER"})
     @DeleteMapping("/{orderId}")
     public ResponseEntity<OrderResponseDto> deleteOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                        @PathVariable UUID orderId){
+                                                        @PathVariable UUID orderId) {
         //주문 취소
         OrderResponseDto response = orderService.deleteOrder(userDetails.getUsername(), orderId);
         //200 반환

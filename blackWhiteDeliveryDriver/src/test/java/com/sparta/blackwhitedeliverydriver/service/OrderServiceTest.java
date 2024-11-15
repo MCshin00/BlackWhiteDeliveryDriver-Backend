@@ -15,6 +15,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.swing.text.html.Option;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,8 +51,9 @@ class OrderServiceTest {
     @DisplayName("주문 생성 성공")
     void createOrder() {
         //given
-        String username = "user1";
-        String storeName = "storeName";
+        String username = "user";
+        String storeName = "store";
+        String productName = "product";
         UUID basketId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
@@ -62,14 +63,22 @@ class OrderServiceTest {
                 .username(username)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
-        Basket basket = Basket.builder()
-                .id(basketId)
-                .user(user)
-                .quantity(2)
-                .build();
         Store store = Store.builder()
                 .storeId(storeId)
                 .storeName(storeName)
+                .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .name(productName)
+                .price(5000)
+                .store(store)
+                .build();
+        Basket basket = Basket.builder()
+                .id(basketId)
+                .user(user)
+                .store(store)
+                .product(product)
+                .quantity(2)
                 .build();
         Order order = Order.builder()
                 .id(orderId)
@@ -80,9 +89,9 @@ class OrderServiceTest {
         OrderProduct orderProduct = OrderProduct.builder()
                 .id(orderProductId)
                 .order(order)
-                .product(productId)
+                .product(product)
                 .quantity(2)
-                .price(5000)
+                .price(product.getPrice())
                 .build();
 
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
@@ -90,8 +99,10 @@ class OrderServiceTest {
         given(orderRepository.save(any())).willReturn(order);
         when(orderProductRepository.saveAll(any())).thenReturn(List.of(orderProduct));
         doNothing().when(basketRepository).deleteAll(any());
+
         //when
         OrderResponseDto response = orderService.createOrder(username);
+
         //then
         Assertions.assertEquals(10000, order.getFinalPay());
         Assertions.assertEquals(orderId, response.getOrderId());
@@ -109,14 +120,8 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 생성 실패2 : 상품이 존재하지 않는 경우")
+    @DisplayName("주문 생성 실패2 : 장바구니가 존재하지 않는 경우")
     void createOrder_fail2() {
-        // Product 엔티티 생성 후 구현 예정
-    }
-
-    @Test
-    @DisplayName("주문 생성 실패3 : 장바구니가 존재하지 않는 경우")
-    void createOrder_fail3() {
         //given
         String username = "user1";
         User user = User.builder()
@@ -124,6 +129,7 @@ class OrderServiceTest {
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
         List<Basket> baskets = new ArrayList<>();
+
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         when(basketRepository.findAllById(any())).thenReturn(baskets);
 
@@ -417,7 +423,7 @@ class OrderServiceTest {
         OrderProduct orderProduct = OrderProduct.builder()
                 .id(orderProductId)
                 .order(order)
-                .product(productId)
+//                .product(productId)
                 .quantity(2)
                 .price(5000)
                 .build();

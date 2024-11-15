@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.blackwhitedeliverydriver.config.TestSecurityConfig;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
@@ -25,10 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(OrderController.class)
+@Import(TestSecurityConfig.class)
 class OrderControllerTest {
 
     @Autowired
@@ -42,20 +45,36 @@ class OrderControllerTest {
     private static final String BASE_URL = "/api/v1";
 
     @Test
-    @DisplayName("주문 생성하기")
-    @MockUser
-    void createOrder() throws Exception {
+    @DisplayName("주문 생성하기 성공")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
+    void createOrder_success() throws Exception {
         //given
-        String orderId = "3e678a43-41b1-4a35-97fb-4ad686308074";
-        OrderResponseDto response = new OrderResponseDto(UUID.fromString(orderId));
+        UUID orderId = UUID.randomUUID();
+        OrderResponseDto response = new OrderResponseDto(orderId);
+
         //when
         when(orderService.createOrder(any())).thenReturn(response);
+
         //then
-        mvc.perform(post(BASE_URL + "/orders")
-                        .with(csrf()))
+        mvc.perform(post(BASE_URL + "/orders"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.orderId").exists());
 
+    }
+    @Test
+    @DisplayName("주문 생성하기 실패 : 허용하지 않는 권한")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void createOrder_fail() throws Exception {
+        //given
+        UUID orderId = UUID.randomUUID();
+        OrderResponseDto response = new OrderResponseDto(orderId);
+
+        //when
+        when(orderService.createOrder(any())).thenReturn(response);
+
+        //then
+        mvc.perform(post(BASE_URL + "/orders"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
