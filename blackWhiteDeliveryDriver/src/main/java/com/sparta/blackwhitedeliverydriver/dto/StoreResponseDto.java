@@ -27,22 +27,6 @@ public class StoreResponseDto {
     private String detailAddr;
     private String storeIntro;
 
-    public StoreResponseDto(Store store){
-        this.storeId = store.getStoreId();
-        this.storeName = store.getStoreName();
-        this.phoneNumber = store.getPhoneNumber();
-        this.openTime = store.getOpenTime();
-        this.closeTime = store.getCloseTime();
-        this.imgUrl = store.getImgUrl();
-        this.zipNum = store.getZipNum();
-        this.city = store.getCity();
-        this.district = store.getDistrict();
-        this.streetName = store.getStreetName();
-        this.streetNumber = store.getStreetNumber();
-        this.detailAddr = store.getDetailAddr();
-        this.storeIntro = store.getStoreIntro();
-    }
-
     public static StoreResponseDto from(Store store) {
         return StoreResponseDto.builder()
                 .storeId(store.getStoreId())
