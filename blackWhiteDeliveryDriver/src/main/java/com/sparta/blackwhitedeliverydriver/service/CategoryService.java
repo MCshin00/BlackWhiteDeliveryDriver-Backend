@@ -25,13 +25,14 @@ public class CategoryService {
 
         List<Category> categoryList = new ArrayList<>();
         for(String categoryName : categorySet) {
-            categoryRepository.findByName(categoryName)
+            Category category = categoryRepository.findByName(categoryName)
                     .orElseGet(() -> {
                         // 없으면 새로 생성하고 저장
-                        Category category = Category.from(categoryName);
-                        categoryList.add(category);
-                        return categoryRepository.save(category);
+                        Category newCategory = Category.from(categoryName);
+                        categoryList.add(newCategory);
+                        return categoryRepository.save(newCategory);
                     });
+            categoryList.add(category);
         }
 
         return categoryList;
