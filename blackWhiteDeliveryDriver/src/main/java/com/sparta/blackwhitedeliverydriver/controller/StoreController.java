@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,12 +47,9 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoList);
     }
 
+    @Secured("ROLE_OWNER")
     @PostMapping("/")
     public ResponseEntity<?> createStore(@Valid @RequestBody StoreRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        // OWNER인지 확인 -> 본인 가게 등록
-        if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER)){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Owner 권한이 있어야 점포 생성이 가능합니다.");
-        }
         // 카테고리 등록
         List<Category> categoryList = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
 
@@ -64,39 +62,33 @@ public class StoreController {
     }
     // Manager, Master -> Owner의 가게 등록
 
+    @Secured("ROLE_OWNER, ROLE_MANAGER, ROLE_MASTER")
     @PutMapping("/{storeId}")
     public ResponseEntity<?> updateStore(@PathVariable UUID storeId, @RequestBody StoreRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        // OWNER의 가게인지 확인 -> 본인 가게만 수정
-        if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER) || !isStoreOfOwner(storeId, userDetails)){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 점포만 수정이 가능합니다.");
-        }
-
         // 카테고리 등록
         List<Category> newCategoryList = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
         // 점포 수정
         StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeService.updateStore(storeId, requestDto, newCategoryList, userDetails));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
+        return ResponseEntity.status(HttpStatus.OK).body(storeIdResponseDto);
     }
 
+    @Secured("ROLE_MANAGER, ROLE_MASTER")
+    @PutMapping("/{storeId}/public")
+    public ResponseEntity<StoreIdResponseDto> updateStorePublic(@PathVariable UUID storeId, @RequestParam boolean isPublic) {
+        StoreIdResponseDto storeIdResponseDto = storeService.updateStorePublic(storeId, isPublic);
+
+        return ResponseEntity.status(HttpStatus.OK).body(storeIdResponseDto);
+    }
+
+    @Secured("ROLE_OWNER, ROLE_MANAGER, ROLE_MASTER")
     @DeleteMapping("/{storeId}")
     public ResponseEntity<?> deleteStore(@PathVariable UUID storeId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        // OWNER의 가게인지 확인 -> 본인 가게만 수정
-        if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER) || !isStoreOfOwner(storeId, userDetails)){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 점포만 수정이 가능합니다.");
-        }
-
         // 점포 삭제
         storeService.deleteStore(storeId, userDetails);
 
         StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
 
         return ResponseEntity.status(HttpStatus.OK).body(storeIdResponseDto);
-    }
-
-    private boolean isStoreOfOwner(UUID storeId, UserDetailsImpl userDetails) {
-        String ownerNameOfStore = storeService.getNameOfOwner(storeId);
-        if(ownerNameOfStore.matches(userDetails.getUser().getUsername())){ return true; }
-        return false;
     }
 }

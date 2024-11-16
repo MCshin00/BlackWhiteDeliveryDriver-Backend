@@ -60,8 +60,8 @@ public class Store extends BaseEntity {
     private String detailAddr;
     @Column(name = "store_intro", nullable = false)
     private String storeIntro;
-    @Column(name = "is_public", nullable = false)
-    private Boolean isPublic = false; // 매장 승인 여부
+    @Column(name = "public_store", nullable = false)
+    private Boolean publicStore = false; // 매장 승인 여부
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_username", nullable = false)
@@ -82,7 +82,7 @@ public class Store extends BaseEntity {
                 .streetNumber(requestDto.getStreetNumber())
                 .detailAddr(requestDto.getDetailAddr())
                 .storeIntro(requestDto.getStoreIntro())
-                .isPublic(true)
+                .publicStore(true)
                 .rating(0)
                 .reviewCnt(0)
                 .user(user)
@@ -111,5 +111,9 @@ public class Store extends BaseEntity {
 
     public void updateRating(int previousRating, int updatedRating) {
         this.rating = rating - previousRating + updatedRating;
+    }
+
+    public void updatePublicStore(boolean isPublic) {
+        this.publicStore = isPublic;
     }
 }

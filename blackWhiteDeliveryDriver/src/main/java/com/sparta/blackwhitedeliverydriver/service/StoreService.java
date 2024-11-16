@@ -1,11 +1,13 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.StoreIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Category;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.StoreCategory;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.repository.CategoryRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreCategoryRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
@@ -30,6 +32,7 @@ public class StoreService {
     @Transactional
     public UUID createStore(@Valid StoreRequestDto requestDto, List<Category> categoryList, User user) {
         // 점포 중복확인 (이름, 전화번호)
+        checkStoreNameAndPhoneNumber(requestDto.getStoreName(), requestDto.getPhoneNumber());
 
         // 점포 등록
         Store store = Store.from(requestDto, user);
@@ -47,6 +50,11 @@ public class StoreService {
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new NullPointerException(requestDto.getStoreName() + "은(는) 존재하지 않는 점포입니다.")
         );
+
+        // OWNER의 가게인지 확인 -> 본인 가게만 수정, MANAGER와 MASTER는 검증하지 않음
+        if(userDetails.getUser().getRole().equals(UserRoleEnum.OWNER)) {
+            checkStoreOfOwner(storeId, userDetails);
+        }
 
         // 기존 카테고리 전체 삭제
         storeCategoryRepository.deleteAllByStoreStoreId(storeId);
@@ -70,6 +78,17 @@ public class StoreService {
         store.update(requestDto, userDetails);
 
         return store.getStoreId();
+    }
+
+    @Transactional
+    public StoreIdResponseDto updateStorePublic(UUID storeId, boolean isPublic) {
+        Store store = storeRepository.findById(storeId).orElseThrow(() ->
+                new IllegalArgumentException("해당 점포를 찾을 수 없습니다."));
+
+        store.updatePublicStore(isPublic);
+        storeRepository.save(store);
+
+        return new StoreIdResponseDto(store.getStoreId());
     }
 
     public List<StoreResponseDto> getStoreList() {
@@ -119,6 +138,11 @@ public class StoreService {
                 () -> new NullPointerException("존재하지않는 점포입니다.")
         );
 
+        // OWNER의 가게인지 확인 -> 본인 가게만 수정, MANAGER와 MASTER는 검증하지 않음
+        if(userDetails.getUser().getRole().equals(UserRoleEnum.OWNER)) {
+            checkStoreOfOwner(storeId, userDetails);
+        }
+
         store.setDeletedDate(LocalDateTime.now());
         store.setDeletedBy(userDetails.getUsername());
     }
@@ -151,5 +175,19 @@ public class StoreService {
         );
 
         return user.getUsername();
+    }
+
+    private void checkStoreOfOwner(UUID storeId, UserDetailsImpl userDetails) {
+        String ownerNameOfStore = getNameOfOwner(storeId);
+        if(ownerNameOfStore.matches(userDetails.getUser().getUsername())) {
+            throw new IllegalArgumentException("본인 점포만 수정이 가능합니다.");
+        }
+    }
+
+    private void checkStoreNameAndPhoneNumber(String storeName, String phoneNumber) {
+        Optional<Store> checkStoreName = storeRepository.findByStoreNameAndPhoneNumber(storeName, phoneNumber);
+        if (checkStoreName.isPresent()) {
+            throw new IllegalArgumentException("가게명 또는 전화번호가 중복되었습니다.");
+        }
     }
 }
