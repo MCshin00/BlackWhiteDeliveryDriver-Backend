@@ -23,8 +23,6 @@ public class UpdateUserRequestDto {
     @Pattern(regexp = "^[0-9]{11}$")
     private String phoneNumber;
 
-    private UserRoleEnum role;
-
     private boolean publicProfile;
 
     private String imgUrl;

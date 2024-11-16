@@ -102,7 +102,6 @@ public class UserService {
 
         checkEmail(requestDto.getEmail(), user.getEmail());
         checkPhoneNumber(requestDto.getPhoneNumber(), user.getPhoneNumber());
-        checkRole(requestDto.getRole());
         checkDeletedUser(user);
 
         user.update(requestDto, passwordEncoder);
