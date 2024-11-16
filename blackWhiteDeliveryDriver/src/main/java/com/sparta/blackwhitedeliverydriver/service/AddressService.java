@@ -4,6 +4,7 @@ import com.sparta.blackwhitedeliverydriver.dto.AddressIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.AddressRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.AddressResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Address;
+import com.sparta.blackwhitedeliverydriver.entity.Review;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.AddressRepository;
@@ -48,10 +49,7 @@ public class AddressService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
         checkDeletedAddress(address);
-
-        if (!address.getUser().getUsername().equals(user.getUsername())) {
-            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
-        }
+        checkCreatedBy(address, user.getUsername());
 
         address.update(requestDto);
         addressRepository.save(address);
@@ -98,9 +96,7 @@ public class AddressService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
-        if (!address.getUser().getUsername().equals(user.getUsername())) {
-            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
-        }
+        checkCreatedBy(address, user.getUsername());
 
         user.updateCurrentAddress(address);
         userRepository.save(user);
@@ -117,9 +113,11 @@ public class AddressService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
         checkDeletedAddress(address);
+        checkCreatedBy(address, user.getUsername());
 
-        if (!address.getUser().getUsername().equals(user.getUsername())) {
-            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
+        // 삭제하는 배송지가 사용자의 현재(기본)배송지라면 현재(기본)배송지를 null로 처리
+        if (user.getCurrentAddress().equals(address)) {
+            user.updateCurrentAddress(null);
         }
 
         address.setDeletedBy(user.getUsername());
@@ -141,4 +139,11 @@ public class AddressService {
             throw new IllegalArgumentException(ExceptionMessage.CURRNET_ADDRESS_NOT_FOUND.getMessage());
         }
     }
+
+    private void checkCreatedBy(Address address, String username) {
+        if (!address.getCreatedBy().equals(username)) {
+            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
+        }
+    }
+
 }
