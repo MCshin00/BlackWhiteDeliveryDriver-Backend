@@ -28,6 +28,7 @@ public class StoreResponseDto {
     private String detailAddr;
     private String storeIntro;
     private String category;
+    private double avgRating;
 
     public static StoreResponseDto from(Store store, String categoryNames) {
         return StoreResponseDto.builder()
@@ -45,6 +46,7 @@ public class StoreResponseDto {
                 .detailAddr(store.getDetailAddr())
                 .storeIntro(store.getStoreIntro())
                 .category(categoryNames)
+                .avgRating((double)store.getRating() / store.getReviewCnt())
                 .build();
     }
 }
