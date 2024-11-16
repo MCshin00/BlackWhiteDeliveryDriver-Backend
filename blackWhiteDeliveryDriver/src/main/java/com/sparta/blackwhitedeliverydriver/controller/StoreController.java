@@ -9,20 +9,14 @@ import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.CategoryService;
 import com.sparta.blackwhitedeliverydriver.service.StoreService;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -58,10 +52,11 @@ public class StoreController {
         if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Owner 권한이 있어야 점포 생성이 가능합니다.");
         }
-        // 점포 등록
-        UUID storeId = storeService.createStore(requestDto, userDetails.getUser());
         // 카테고리 등록
-        UUID categoryId = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
+        Category category = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
+
+        // 점포 등록
+        UUID storeId = storeService.createStore(requestDto, category, userDetails.getUser());
 
         StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
 
