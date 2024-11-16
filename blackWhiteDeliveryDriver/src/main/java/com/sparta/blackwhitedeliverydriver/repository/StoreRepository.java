@@ -5,11 +5,13 @@ import com.sparta.blackwhitedeliverydriver.entity.User;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StoreRepository extends JpaRepository<Store, UUID>{
 
     Optional<Store> findByStoreNameAndPhoneNumber(String storeName, String phoneNumber);
 
-    List<Store> findAllByUser(User user);
+    Page<Store> findAllByUser(User user, Pageable pageable);
 }

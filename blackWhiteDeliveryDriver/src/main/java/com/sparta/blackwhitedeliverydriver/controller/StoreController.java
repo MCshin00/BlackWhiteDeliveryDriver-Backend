@@ -10,6 +10,9 @@ import com.sparta.blackwhitedeliverydriver.service.CategoryService;
 import com.sparta.blackwhitedeliverydriver.service.StoreService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,10 +30,19 @@ public class StoreController {
     private final CategoryService categoryService;
 
     @GetMapping("/")
-    public ResponseEntity<?> getStores(){
+    public ResponseEntity<?> getStores(
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc,
+            @AuthenticationPrincipal UserDetailsImpl userDetails, Sort sort
+    ){
         // 전체 점포 목록 조회
-        List<StoreResponseDto> storeResponseDtoList = storeService.getStoreList();
-        return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoList);
+        List<StoreResponseDto> storeResponseDtoPage = storeService.getStores(
+                userDetails.getUser(), page - 1, size, sortBy, isAsc
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoPage);
     }
 
     @GetMapping("/{storeId}")
@@ -40,10 +52,17 @@ public class StoreController {
     }
 
     @GetMapping("/owner")
-    public ResponseEntity<?> getStoreOfOwner(@AuthenticationPrincipal UserDetailsImpl userDetails){
+    public ResponseEntity<?> getStoreOfOwner(
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc,
+            @AuthenticationPrincipal UserDetailsImpl userDetails, Sort sort){
         // OWNER가 등록한 가게 조회
-        List<StoreResponseDto> storeResponseDtoList = storeService.getStoreOfOwner(userDetails.getUser());
-        return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoList);
+        List<StoreResponseDto> storeResponseDtoPage = storeService.getStoresOfOwner(
+                userDetails.getUser(), page - 1, size, sortBy, isAsc
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoPage);
     }
 
     @PostMapping("/")

@@ -1,17 +1,25 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.ProductResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Category;
+import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.StoreCategory;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.repository.CategoryRepository;
+import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreCategoryRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +34,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final StoreCategoryRepository storeCategoryRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Transactional
     public UUID createStore(@Valid StoreRequestDto requestDto, List<Category> categoryList, User user) {
@@ -72,28 +81,6 @@ public class StoreService {
         return store.getStoreId();
     }
 
-    public List<StoreResponseDto> getStoreList() {
-        List<Store> storeList = storeRepository.findAll();
-        List<StoreResponseDto> storeResponseDtoList = new ArrayList<>();
-
-        for (Store store : storeList) {
-            List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
-            List<String> categoryNameList = new ArrayList<>();
-            for (StoreCategory storeCategory : storeCategoryList){
-                Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
-                        () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
-                ));
-
-                categoryNameList.add(category.get().getName());
-            }
-            String categoryNames = categoryNameList.stream().collect(Collectors.joining(", "));
-
-            storeResponseDtoList.add(StoreResponseDto.from(store, categoryNames));
-        }
-
-        return storeResponseDtoList;
-    }
-
     public StoreResponseDto getStore(UUID storeId) {
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new NullPointerException("해당 점포를 찾을 수 없습니다.")
@@ -123,11 +110,23 @@ public class StoreService {
         store.setDeletedBy(userDetails.getUsername());
     }
 
-    public List<StoreResponseDto> getStoreOfOwner(User user) {
-        List<Store> storeList = storeRepository.findAllByUser(user);
-        List<StoreResponseDto> responseDtoList = new ArrayList<>();
+    public String getNameOfOwner(UUID storeId) {
+        User user = storeRepository.findById(storeId).map(Store::getUser).orElseThrow(
+                () -> new IllegalArgumentException(storeId + "라는 점포가 없습니다.")
+        );
 
-        for (Store store : storeList) {
+        return user.getUsername();
+    }
+
+    public List<StoreResponseDto> getStores(User user, int page, int size, String sortBy, boolean isAsc) {
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Store> storeList = storeRepository.findAll(pageable);
+        List<StoreResponseDto> storeResponseDtoList = new ArrayList<>();
+
+        for(Store store : storeList.getContent()){
             List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
             List<String> categoryNameList = new ArrayList<>();
             for (StoreCategory storeCategory : storeCategoryList){
@@ -139,17 +138,42 @@ public class StoreService {
             }
             String categoryNames = categoryNameList.stream().collect(Collectors.joining(", "));
 
-            responseDtoList.add(StoreResponseDto.from(store, categoryNames));
+            StoreResponseDto storeResponseDto = StoreResponseDto.from(store, categoryNames);
+            storeResponseDtoList.add(storeResponseDto);
         }
 
-        return responseDtoList;
+        return storeResponseDtoList;
     }
 
-    public String getNameOfOwner(UUID storeId) {
-        User user = storeRepository.findById(storeId).map(Store::getUser).orElseThrow(
-                () -> new IllegalArgumentException(storeId + "라는 점포가 없습니다.")
-        );
+    public List<StoreResponseDto> getStoresOfOwner(User user, int page, int size, String sortBy, boolean isAsc) {
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        return user.getUsername();
+        UserRoleEnum userRoleEnum = user.getRole();
+
+        Page<Store> storeList;
+        List<StoreResponseDto> storeResponseDtoList = new ArrayList<>();
+        if(userRoleEnum == UserRoleEnum.OWNER) {
+            storeList = storeRepository.findAllByUser(user, pageable);
+
+            for(Store store : storeList.getContent()){
+                List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
+                List<String> categoryNameList = new ArrayList<>();
+                for (StoreCategory storeCategory : storeCategoryList){
+                    Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
+                            () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
+                    ));
+
+                    categoryNameList.add(category.get().getName());
+                }
+                String categoryNames = categoryNameList.stream().collect(Collectors.joining(", "));
+
+                StoreResponseDto storeResponseDto = StoreResponseDto.from(store, categoryNames);
+                storeResponseDtoList.add(storeResponseDto);
+            }
+        }
+
+        return storeResponseDtoList;
     }
 }
