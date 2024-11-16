@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,6 +73,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Secured({"ROLE_CUSTOMER", "ROLE_MANAGER", "ROLE_MASTER"})
     @PutMapping("/{reviewId}")
     public ResponseEntity<ReviewIdResponseDto> updateReview(
             @PathVariable UUID reviewId,
@@ -83,6 +85,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Secured({"ROLE_CUSTOMER", "ROLE_MANAGER", "ROLE_MASTER"})
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<ReviewIdResponseDto> deleteReview(
             @PathVariable UUID reviewId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
