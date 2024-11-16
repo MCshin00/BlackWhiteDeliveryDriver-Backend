@@ -26,6 +26,8 @@ public class AddressResponseDto {
 
     private String detailAddr;
 
+    private String requestDetails;
+
     // 정적 팩토리 메서드 + 빌더 패턴
     public static AddressResponseDto from(Address address) {
         return AddressResponseDto.builder()
@@ -36,6 +38,7 @@ public class AddressResponseDto {
                 .streetName(address.getStreetName())
                 .streetNum(address.getStreetNum())
                 .detailAddr(address.getDetailAddr())
+                .requestDetails(address.getRequestDetails())
                 .build();
     }
 }

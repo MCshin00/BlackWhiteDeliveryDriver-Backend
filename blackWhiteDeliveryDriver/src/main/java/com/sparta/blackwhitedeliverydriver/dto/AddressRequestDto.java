@@ -19,4 +19,6 @@ public class AddressRequestDto {
     private String streetNum;
     @NotBlank
     private String detailAddr;
+
+    private String requestDetails;
 }
