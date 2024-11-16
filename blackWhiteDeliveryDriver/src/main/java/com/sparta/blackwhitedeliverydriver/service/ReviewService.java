@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.Review;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ReviewExceptionMessage;
@@ -109,9 +110,8 @@ public class ReviewService {
                 .orElseThrow(() -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage()));
 
         checkDeletedReview(review);
-
-        if (!review.getCreatedBy().equals(user.getUsername())) {
-            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
+        if (user.getRole() == UserRoleEnum.CUSTOMER) {
+            checkCreatedBy(review, user.getUsername());
         }
 
         //평점 업데이트, 기존 값은 빼고 업데이트 한 값을 더한다.
@@ -133,9 +133,8 @@ public class ReviewService {
                 .orElseThrow(() -> new NullPointerException(ReviewExceptionMessage.REVIEW_NOT_FOUND.getMessage()));
 
         checkDeletedReview(review);
-
-        if (!review.getCreatedBy().equals(user.getUsername())) {
-            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
+        if (user.getRole() == UserRoleEnum.CUSTOMER) {
+            checkCreatedBy(review, user.getUsername());
         }
 
         review.setDeletedBy(user.getUsername());
@@ -149,6 +148,12 @@ public class ReviewService {
     private void checkDeletedReview(Review review) {
         if (review.getDeletedBy() != null || review.getDeletedDate() != null) {
             throw new IllegalArgumentException(ReviewExceptionMessage.REVIEW_DELETED.getMessage());
+        }
+    }
+
+    private void checkCreatedBy(Review review, String username) {
+        if (!review.getCreatedBy().equals(username)) {
+            throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
     }
 }
