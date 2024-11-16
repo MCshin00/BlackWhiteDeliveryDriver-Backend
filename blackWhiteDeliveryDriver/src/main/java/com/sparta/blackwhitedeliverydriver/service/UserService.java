@@ -34,8 +34,8 @@ public class UserService {
     @Transactional
     public UsernameResponseDto signup(@Valid SignupRequestDto requestDto, UserRoleEnum loggedInRole) {
         checkUsername(requestDto.getUsername());
-        checkEmail(requestDto.getEmail());
-        checkPhoneNumber(requestDto.getPhoneNumber());
+        checkEmail(requestDto.getEmail(), null);
+        checkPhoneNumber(requestDto.getPhoneNumber(), null);
         if (loggedInRole != UserRoleEnum.MASTER) {
             checkRole(requestDto.getRole());
         }
@@ -100,6 +100,8 @@ public class UserService {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
+        checkEmail(requestDto.getEmail(), user.getEmail());
+        checkPhoneNumber(requestDto.getPhoneNumber(), user.getPhoneNumber());
         checkDeletedUser(user);
 
         user.update(requestDto, passwordEncoder);
@@ -135,18 +137,20 @@ public class UserService {
         }
     }
 
-    private void checkEmail(String email) {
-        Optional<User> checkEmail = userRepository.findByEmail(email);
-        if (checkEmail.isPresent()) {
-            throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_EMAIL.getMessage());
-        }
+    private void checkEmail(String email, String currentEmail) {
+        userRepository.findByEmail(email)
+                .filter(user -> !email.equals(currentEmail))
+                .ifPresent(user -> {
+                    throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_EMAIL.getMessage());
+                });
     }
 
-    private void checkPhoneNumber(String phoneNumber) {
-        Optional<User> checkPhoneNumber = userRepository.findByPhoneNumber(phoneNumber);
-        if (checkPhoneNumber.isPresent()) {
-            throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_PHONENUMBER.getMessage());
-        }
+    private void checkPhoneNumber(String phoneNumber, String currentPhoneNumber) {
+        userRepository.findByPhoneNumber(phoneNumber)
+                .filter(user -> !phoneNumber.equals(currentPhoneNumber))
+                .ifPresent(user -> {
+                    throw new IllegalArgumentException(ExceptionMessage.DUPLICATED_PHONENUMBER.getMessage());
+                });
     }
 
     private void checkRole(UserRoleEnum role) {

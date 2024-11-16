@@ -74,7 +74,6 @@ public class User extends BaseEntity {
         this.email = requestDto.getEmail();
         this.password = passwordEncoder.encode(requestDto.getPassword());
         this.phoneNumber = requestDto.getPhoneNumber();
-        this.role = requestDto.getRole();
         this.publicProfile = requestDto.isPublicProfile();
         this.imageUrl = requestDto.getImgUrl();
     }
