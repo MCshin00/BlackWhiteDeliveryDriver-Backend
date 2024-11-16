@@ -16,20 +16,21 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
 
-    public List<Category> getOrCreateCategory(String categoryName, User user) {
+    @Transactional
+    public List<Category> getOrCreateCategory(String categoryNames, User user) {
         Set<String> categorySet = new HashSet<>();
-        Arrays.stream(categoryName.split(","))
+        Arrays.stream(categoryNames.split(","))
                 .map(String::trim)
                 .forEach(categorySet::add);
 
         List<Category> categoryList = new ArrayList<>();
-        for(String category : categorySet) {
+        for(String categoryName : categorySet) {
             categoryRepository.findByName(categoryName)
                     .orElseGet(() -> {
                         // 없으면 새로 생성하고 저장
-                        Category newCategory = Category.from(categoryName);
-                        categoryList.add(newCategory);
-                        return categoryRepository.save(newCategory);
+                        Category category = Category.from(categoryName);
+                        categoryList.add(category);
+                        return categoryRepository.save(category);
                     });
         }
 
