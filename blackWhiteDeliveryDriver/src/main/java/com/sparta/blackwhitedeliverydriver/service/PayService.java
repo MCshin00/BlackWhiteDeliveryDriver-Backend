@@ -1,6 +1,5 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
-import com.sparta.blackwhitedeliverydriver.dto.PayGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayApproveResponseDto;
@@ -9,7 +8,6 @@ import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
-import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
 import com.sparta.blackwhitedeliverydriver.entity.Pay;
 import com.sparta.blackwhitedeliverydriver.entity.PayStatusEnum;
@@ -18,7 +16,6 @@ import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.PayExceptionMessage;
-import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.PayRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
@@ -26,7 +23,6 @@ import com.sparta.blackwhitedeliverydriver.util.HttpUtil;
 import com.sparta.blackwhitedeliverydriver.util.PayUtil;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +40,6 @@ public class PayService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final PayRepository payRepository;
-    private final OrderProductRepository orderProductRepository;
 
     private final PayUtil payUtil;
     private final HttpUtil httpUtil;
@@ -150,27 +145,6 @@ public class PayService {
         return new PayRefundResponseDto("주문을 취소했습니다.");
     }
 
-    public PayGetDetailResponseDto getPayDetail(String username, UUID payId) {
-        //유저 유효성
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-
-        //PAY 유효성
-        Pay pay = payRepository.findById(payId)
-                .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
-
-        //Order와 유저 유효성
-        UserRoleEnum role = user.getRole();
-        if(role.equals(UserRoleEnum.CUSTOMER)){
-            checkOrderUser(pay.getOrder(), user);
-        }
-
-        //Order에 관한 OrderProduct 조회
-        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(pay.getOrder());
-
-        return PayGetDetailResponseDto.ofPayAndOrderProducts(pay, orderProducts);
-    }
-
     private void checkOrderUser(Order order, User user) {
         String orderUsername = order.getUser().getUsername();
         String username = user.getUsername();
@@ -188,7 +162,7 @@ public class PayService {
     public List<PayGetResponseDto> getPays(String username) {
         //유저 유효성
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_PUBLIC.getMessage()));
 
         //유저 권한별 반환
         List<Pay> pays;
@@ -201,6 +175,4 @@ public class PayService {
 
         return pays.stream().map(PayGetResponseDto::fromPay).collect(Collectors.toList());
     }
-
-
 }
