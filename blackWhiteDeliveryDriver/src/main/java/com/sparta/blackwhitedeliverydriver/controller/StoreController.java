@@ -71,8 +71,10 @@ public class StoreController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 점포만 수정이 가능합니다.");
         }
 
+        // 카테고리 등록
+        List<Category> newCategoryList = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
         // 점포 수정
-        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeService.updateStore(storeId, requestDto, userDetails));
+        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeService.updateStore(storeId, requestDto, newCategoryList, userDetails));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }

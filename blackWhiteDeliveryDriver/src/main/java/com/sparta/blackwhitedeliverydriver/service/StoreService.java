@@ -16,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
@@ -45,12 +42,31 @@ public class StoreService {
     }
 
     @Transactional
-    public UUID updateStore(UUID storeId, StoreRequestDto requestDto, UserDetailsImpl userDetails) {
+    public UUID updateStore(UUID storeId, StoreRequestDto requestDto, List<Category> newCategoryList, UserDetailsImpl userDetails) {
         // 점포 조회
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new NullPointerException(requestDto.getStoreName() + "은(는) 존재하지 않는 점포입니다.")
         );
 
+        // 기존 카테고리 전체 삭제
+        storeCategoryRepository.deleteAllByStoreStoreId(storeId);
+
+        // 새로운 카테고리 추가
+        Set<Category> categorySet = new HashSet<>();
+        for(Category category : newCategoryList) {
+            categorySet.add(category);
+        }
+
+        // 신규 카테고리는 저장
+        List<String> categoryNameList = new ArrayList<>();
+        for(Category category : categorySet) {
+            categoryNameList.add(category.getName());
+            StoreCategory storeCategory = storeCategoryRepository.findByStoreStoreIdAndCategoryCategoryId(store.getStoreId(), category.getCategoryId())
+                            .orElseGet(() -> {
+                               StoreCategory newStoreCategory = StoreCategory.from(store, category);
+                               return storeCategoryRepository.save(newStoreCategory);
+                            });
+        }
         store.update(requestDto, userDetails);
 
         return store.getStoreId();
