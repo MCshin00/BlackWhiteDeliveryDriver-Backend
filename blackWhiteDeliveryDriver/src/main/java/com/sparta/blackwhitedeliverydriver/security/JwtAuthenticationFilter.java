@@ -2,30 +2,24 @@ package com.sparta.blackwhitedeliverydriver.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.blackwhitedeliverydriver.dto.LoginRequestDto;
-import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
-import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.jwt.JwtUtil;
-import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Slf4j(topic = "로그인 및 JWT 생성")
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtUtil jwtUtil;
-    private final AuthenticationValidator authValidator;
+    private final AuthValidator authValidator;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, AuthenticationValidator authValidator) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, AuthValidator authValidator) {
         this.jwtUtil = jwtUtil;
         this.authValidator = authValidator;
         setFilterProcessesUrl("/api/v1/users/login");
@@ -48,7 +42,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                     )
             );
         } catch (IllegalArgumentException | IllegalStateException e) {
-            jwtExceptionHandler(response, e.getMessage(), HttpServletResponse.SC_FORBIDDEN);
+            SecurityExceptionHandler.jwtExceptionHandler(response, e.getMessage(), HttpServletResponse.SC_FORBIDDEN);
             return null;
         } catch (IOException e) {
             log.error(e.getMessage());
@@ -68,17 +62,5 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
         response.setStatus(401);
-    }
-
-    private void jwtExceptionHandler(HttpServletResponse response, String errorMessage, int statusCode) {
-        response.setStatus(statusCode);  // 상태 코드 설정
-        response.setContentType("application/json");  // 응답 형식 설정
-        response.setCharacterEncoding("UTF-8");  // 문자 인코딩 설정
-        try {
-            String json = "{\"errorMessage\":\"" + errorMessage + "\",\"statusCode\":" + statusCode + "}";
-            response.getWriter().write(json);  // JSON 형식으로 오류 메시지 반환
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
     }
 }

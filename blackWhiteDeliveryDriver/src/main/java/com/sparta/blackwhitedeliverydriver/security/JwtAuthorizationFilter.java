@@ -1,5 +1,8 @@
 package com.sparta.blackwhitedeliverydriver.security;
 
+import static com.sparta.blackwhitedeliverydriver.security.SecurityExceptionHandler.jwtExceptionHandler;
+
+import com.sparta.blackwhitedeliverydriver.exception.CustomJwtException;
 import com.sparta.blackwhitedeliverydriver.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -33,18 +36,20 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         String tokenValue = jwtUtil.getJwtFromHeader(req);
 
         if (StringUtils.hasText(tokenValue)) {
-
-            if (!jwtUtil.validateToken(tokenValue)) {
-                log.error("Token Error");
-                return;
-            }
-
-            Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
-
             try {
+                jwtUtil.validateToken(tokenValue); // 유효성 검증 중 예외 발생 가능
+
+                Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
                 setAuthentication(info.getSubject());
+            } catch (CustomJwtException e) {
+                // JWT 검증 관련 예외 처리
+                log.error("JWT validation failed: {}", e.getMessage());
+                jwtExceptionHandler(res, e.getMessage(), HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             } catch (Exception e) {
-                log.error(e.getMessage());
+                // 기타 예외 처리
+                log.error("Authentication error: {}", e.getMessage());
+                jwtExceptionHandler(res, "Authentication error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return;
             }
         }

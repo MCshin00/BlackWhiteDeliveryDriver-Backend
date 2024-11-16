@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class AuthenticationValidator {
+public class AuthValidator {
     private final UserRepository userRepository;
 
     @Autowired
-    public AuthenticationValidator(UserRepository userRepository) {
+    public AuthValidator(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
