@@ -1,7 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.config;
 
 import com.sparta.blackwhitedeliverydriver.jwt.JwtUtil;
-import com.sparta.blackwhitedeliverydriver.security.AuthenticationValidator;
+import com.sparta.blackwhitedeliverydriver.security.AuthValidator;
 import com.sparta.blackwhitedeliverydriver.security.JwtAuthenticationFilter;
 import com.sparta.blackwhitedeliverydriver.security.JwtAuthorizationFilter;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsServiceImpl;
@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig {
 
     private final JwtUtil jwtUtil;
-    private final AuthenticationValidator authenticationValidator;
+    private final AuthValidator authValidator;
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
 
@@ -42,7 +42,7 @@ public class WebSecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, authenticationValidator);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, authValidator);
         filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
         return filter;
     }

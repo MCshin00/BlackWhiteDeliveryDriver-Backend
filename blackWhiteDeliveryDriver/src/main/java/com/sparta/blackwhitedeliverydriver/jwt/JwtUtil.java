@@ -1,6 +1,8 @@
 package com.sparta.blackwhitedeliverydriver.jwt;
 
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
+import com.sparta.blackwhitedeliverydriver.exception.CustomJwtException;
+import com.sparta.blackwhitedeliverydriver.exception.JwtExceptionMessage;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -8,6 +10,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.security.Key;
@@ -65,20 +68,26 @@ public class JwtUtil {
     }
 
     // 토큰 검증
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+        } catch (SecurityException | MalformedJwtException | SignatureException e) {
+            log.error(JwtExceptionMessage.INVALID_SIGNATURE.getMessage());
+            throw new CustomJwtException(JwtExceptionMessage.INVALID_SIGNATURE.getMessage());
+
         } catch (ExpiredJwtException e) {
-            log.error("Expired JWT token, 만료된 JWT token 입니다.");
+            log.error(JwtExceptionMessage.EXPIRED_TOKEN.getMessage());
+            throw new CustomJwtException(JwtExceptionMessage.EXPIRED_TOKEN.getMessage());
+
         } catch (UnsupportedJwtException e) {
-            log.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+            log.error(JwtExceptionMessage.UNSUPPORTED_TOKEN.getMessage());
+            throw new CustomJwtException(JwtExceptionMessage.UNSUPPORTED_TOKEN.getMessage());
+
         } catch (IllegalArgumentException e) {
-            log.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
+            log.error(JwtExceptionMessage.CLAIM_IS_EMPTY.getMessage());
+            throw new CustomJwtException(JwtExceptionMessage.CLAIM_IS_EMPTY.getMessage());
+
         }
-        return false;
     }
 
     // 토큰에서 사용자 정보 가져오기
