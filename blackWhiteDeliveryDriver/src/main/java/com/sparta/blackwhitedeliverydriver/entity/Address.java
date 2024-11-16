@@ -46,15 +46,19 @@ public class Address extends BaseEntity{
     @Column(nullable = false)
     private String detailAddr;
 
+    @Column
+    private String requestDetails;
+
     @Builder
     public Address(String zipNum, String city, String district, String streetName,
-                   String streetNum, String detailAddr, User user) {
+                   String streetNum, String detailAddr, String requestDetails,User user) {
         this.zipNum = zipNum;
         this.city = city;
         this.district = district;
         this.streetName = streetName;
         this.streetNum = streetNum;
         this.detailAddr = detailAddr;
+        this.requestDetails = requestDetails;
         this.user = user;
     }
 
@@ -67,6 +71,7 @@ public class Address extends BaseEntity{
                 .streetName(dto.getStreetName())
                 .streetNum(dto.getStreetNum())
                 .detailAddr(dto.getDetailAddr())
+                .requestDetails(dto.getRequestDetails())
                 .user(user)
                 .build();
     }
@@ -79,5 +84,6 @@ public class Address extends BaseEntity{
         this.streetName = dto.getStreetName();
         this.streetNum = dto.getStreetNum();
         this.detailAddr = dto.getDetailAddr();
+        this.requestDetails = dto.getRequestDetails();
     }
 }
