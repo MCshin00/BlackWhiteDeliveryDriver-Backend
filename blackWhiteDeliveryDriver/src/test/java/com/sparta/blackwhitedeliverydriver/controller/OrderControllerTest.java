@@ -11,6 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.blackwhitedeliverydriver.config.TestSecurityConfig;
+import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
@@ -25,10 +27,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(OrderController.class)
+@Import(TestSecurityConfig.class)
 class OrderControllerTest {
 
     @Autowired
@@ -42,31 +46,48 @@ class OrderControllerTest {
     private static final String BASE_URL = "/api/v1";
 
     @Test
-    @DisplayName("주문 생성하기")
-    @MockUser
-    void createOrder() throws Exception {
+    @DisplayName("주문 생성하기 성공")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
+    void createOrder_success() throws Exception {
         //given
-        String orderId = "3e678a43-41b1-4a35-97fb-4ad686308074";
-        OrderResponseDto response = new OrderResponseDto(UUID.fromString(orderId));
+        UUID orderId = UUID.randomUUID();
+        OrderResponseDto response = new OrderResponseDto(orderId);
+
         //when
         when(orderService.createOrder(any())).thenReturn(response);
+
         //then
-        mvc.perform(post(BASE_URL + "/orders")
-                        .with(csrf()))
+        mvc.perform(post(BASE_URL + "/orders"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.orderId").exists());
 
     }
 
     @Test
-    @DisplayName("주문 상세 조회하기")
-    @MockUser(role = UserRoleEnum.MASTER)
-    void getOrderDetail() throws Exception {
+    @DisplayName("주문 생성하기 실패 : 허용하지 않는 권한")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void createOrder_fail() throws Exception {
         //given
-        String orderId = "3e678a43-41b1-4a35-97fb-4ad686308074";
-        String username = "user1";
-        OrderGetResponseDto response = OrderGetResponseDto.builder()
-                .orderId(UUID.fromString(orderId))
+        UUID orderId = UUID.randomUUID();
+        OrderResponseDto response = new OrderResponseDto(orderId);
+
+        //when
+        when(orderService.createOrder(any())).thenReturn(response);
+
+        //then
+        mvc.perform(post(BASE_URL + "/orders"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회하기 성공")
+    @MockUser(role = UserRoleEnum.MASTER)
+    void getOrderDetail_success() throws Exception {
+        //given
+        UUID orderId = UUID.randomUUID();
+        String username = "user";
+        OrderGetDetailResponseDto response = OrderGetDetailResponseDto.builder()
+                .orderId(orderId)
                 .username(username)
                 .finalPay(10000)
                 .discountAmount(0)
@@ -84,14 +105,37 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("주문 목록 조회하기")
-    @MockUser
-    void getOrders() throws Exception {
+    @DisplayName("주문 상세 조회하기 실패 : 허용하지 않은 권한")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void getOrderDetail() throws Exception {
         //given
-        String orderId = "3e678a43-41b1-4a35-97fb-4ad686308074";
-        String username = "user1";
+        UUID orderId = UUID.randomUUID();
+        String username = "user";
+        OrderGetDetailResponseDto response = OrderGetDetailResponseDto.builder()
+                .orderId(orderId)
+                .username(username)
+                .finalPay(10000)
+                .discountAmount(0)
+                .discountRate(0)
+                .build();
+
+        //when
+        when(orderService.getOrderDetail(any(), any())).thenReturn(response);
+
+        //then
+        mvc.perform(get(BASE_URL + "/orders/{orderId}", orderId))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회하기 성공")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
+    void getOrders_success() throws Exception {
+        //given
+        UUID orderId = UUID.randomUUID();
+        String username = "user";
         OrderGetResponseDto response = OrderGetResponseDto.builder()
-                .orderId(UUID.fromString(orderId))
+                .orderId(orderId)
                 .username(username)
                 .finalPay(10000)
                 .discountAmount(0)
@@ -111,9 +155,34 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("주문 상태 수정하기")
+    @DisplayName("주문 목록 조회하기 실패")
     @MockUser(role = UserRoleEnum.OWNER)
-    void updateOrderStatus() throws Exception {
+    void getOrders_fail() throws Exception {
+        //given
+        UUID orderId = UUID.randomUUID();
+        String username = "user";
+        OrderGetResponseDto response = OrderGetResponseDto.builder()
+                .orderId(orderId)
+                .username(username)
+                .finalPay(10000)
+                .discountAmount(0)
+                .discountRate(0)
+                .build();
+        List<OrderGetResponseDto> responseList = List.of(response);
+
+        //when
+        when(orderService.getOrders(any())).thenReturn(responseList);
+
+        //then
+        mvc.perform(get(BASE_URL + "/orders"))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("주문 상태 수정하기 성공")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void updateOrderStatus_success() throws Exception {
         //given
         UUID orderId = UUID.randomUUID();
         OrderUpdateRequestDto request = new OrderUpdateRequestDto(orderId, OrderStatusEnum.ACCEPTED);
@@ -126,7 +195,6 @@ class OrderControllerTest {
         String body = mapper.writeValueAsString(request);
 
         mvc.perform(put(BASE_URL + "/orders")
-                        .with(csrf())
                         .content(body)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -135,11 +203,32 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("주문 취소하기")
+    @DisplayName("주문 상태 수정하기 실패")
     @MockUser(role = UserRoleEnum.CUSTOMER)
-    void deleteOrder() throws Exception {
+    void updateOrderStatus_fail() throws Exception {
         //given
-        String username = "user";
+        UUID orderId = UUID.randomUUID();
+        OrderUpdateRequestDto request = new OrderUpdateRequestDto(orderId, OrderStatusEnum.ACCEPTED);
+        OrderResponseDto response = new OrderResponseDto(orderId);
+
+        //when
+        when(orderService.updateOrderStatus(any(), any())).thenReturn(response);
+
+        //then
+        String body = mapper.writeValueAsString(request);
+
+        mvc.perform(put(BASE_URL + "/orders")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("주문 취소하기 성공")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
+    void deleteOrder_success() throws Exception {
+        //given
         UUID orderId = UUID.randomUUID();
         OrderResponseDto response = new OrderResponseDto(orderId);
 
@@ -147,9 +236,24 @@ class OrderControllerTest {
         when(orderService.deleteOrder(any(), any())).thenReturn(response);
 
         //then
-        mvc.perform(delete(BASE_URL + "/orders/{orderId}", orderId.toString())
-                        .with(csrf()))
+        mvc.perform(delete(BASE_URL + "/orders/{orderId}", orderId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderId").exists());
+    }
+
+    @Test
+    @DisplayName("주문 취소하기 실패 : 허용하지 않는 권한")
+    @MockUser(role = UserRoleEnum.OWNER)
+    void deleteOrder_fail() throws Exception {
+        //given
+        UUID orderId = UUID.randomUUID();
+        OrderResponseDto response = new OrderResponseDto(orderId);
+
+        //when
+        when(orderService.deleteOrder(any(), any())).thenReturn(response);
+
+        //then
+        mvc.perform(delete(BASE_URL + "/orders/{orderId}", orderId.toString()))
+                .andExpect(status().isForbidden());
     }
 }

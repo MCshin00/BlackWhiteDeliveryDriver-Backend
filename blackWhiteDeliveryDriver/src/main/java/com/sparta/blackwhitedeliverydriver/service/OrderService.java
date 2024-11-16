@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
@@ -7,6 +8,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
@@ -22,12 +24,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderService {
 
     private final BasketRepository basketRepository;
@@ -55,7 +58,8 @@ public class OrderService {
         //연관관계 테이블에 장바구니 품목 저장
         List<OrderProduct> orderProducts = new ArrayList<>();
         for (Basket basket : baskets) {
-            OrderProduct orderProduct = OrderProduct.ofBasketAndOrder(basket, order);
+            Product product = basket.getProduct();
+            OrderProduct orderProduct = OrderProduct.of(basket, product, order);
             orderProducts.add(orderProduct);
         }
         orderProductRepository.saveAll(orderProducts);
@@ -71,7 +75,7 @@ public class OrderService {
         return new OrderResponseDto(order.getId());
     }
 
-    public OrderGetResponseDto getOrderDetail(String username, UUID orderId) {
+    public OrderGetDetailResponseDto getOrderDetail(String username, UUID orderId) {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
@@ -86,9 +90,9 @@ public class OrderService {
         }
 
         // Product Entity 구현되면 음식 목록도 포함하여 리턴
-        // code..
+        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
 
-        return OrderGetResponseDto.fromOrder(order);
+        return OrderGetDetailResponseDto.of(order, orderProducts);
     }
 
     public List<OrderGetResponseDto> getOrders(String username) {
@@ -97,9 +101,9 @@ public class OrderService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         //주문 조회
-        //점포 주인 권한은 Product 엔티티가 생성된 후 추가하겠습니다.
+        UserRoleEnum role = user.getRole();
         List<Order> orders;
-        if (user.getRole().equals(UserRoleEnum.CUSTOMER)) {
+        if (role.equals(UserRoleEnum.CUSTOMER)) {
             orders = orderRepository.findAllByUser(user);
         } else {
             orders = orderRepository.findAll();
@@ -113,11 +117,14 @@ public class OrderService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         //주문 유효성
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+
         //주문의 점포 주인과 유저 체크
-        //Code...
+        checkStoreOwnerEquals(order.getStore(), user);
+
         order.updateStatus(request.getStatus());
         return new OrderResponseDto(order.getId());
     }
@@ -141,7 +148,7 @@ public class OrderService {
         //orderProduct 조회 후 basket 저장
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
         for (OrderProduct orderProduct : orderProducts) {
-            Basket basket = Basket.ofUserAndOrderProduct(user, null,orderProduct); // 수정이 필요
+            Basket basket = Basket.ofUserAndOrderProduct(user, orderProduct.getProduct(), orderProduct); // 수정이 필요
             basketRepository.save(basket);
         }
 
@@ -176,6 +183,13 @@ public class OrderService {
     private void checkEnableDeleteOrderStatus(Order order) {
         if (!order.getStatus().equals(OrderStatusEnum.CREATE) && !order.getStatus().equals(OrderStatusEnum.PENDING)) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_DELETE_STATUS.getMessage());
+        }
+    }
+
+    private void checkStoreOwnerEquals(Store store, User user) {
+        User owner = store.getUser();
+        if (!owner.getUsername().equals(user.getUsername())) {
+            throw new IllegalArgumentException("점포 오너 권한이 없습니다.");
         }
     }
 

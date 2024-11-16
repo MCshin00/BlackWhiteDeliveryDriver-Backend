@@ -1,9 +1,9 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
+import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
-import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.OrderService;
 import java.util.List;
@@ -40,10 +40,11 @@ public class OrderController {
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderGetResponseDto> getOrderDetail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                              @PathVariable UUID orderId) {
+    public ResponseEntity<OrderGetDetailResponseDto> getOrderDetail(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable UUID orderId) {
         //주문서 상세 조회
-        OrderGetResponseDto response = orderService.getOrderDetail(userDetails.getUsername(), orderId);
+        OrderGetDetailResponseDto response = orderService.getOrderDetail(userDetails.getUsername(), orderId);
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -57,7 +58,7 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(responseList);
     }
 
-    @Secured({"ROLE_OWNER"})
+    @Secured({"ROLE_OWNER", "ROEL_MASTER", "ROLE_MANAGER"})
     @PutMapping
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                               @RequestBody OrderUpdateRequestDto request) {
@@ -67,10 +68,10 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Secured({"ROLE_CUSTOMER"})
+    @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
     @DeleteMapping("/{orderId}")
     public ResponseEntity<OrderResponseDto> deleteOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                        @PathVariable UUID orderId){
+                                                        @PathVariable UUID orderId) {
         //주문 취소
         OrderResponseDto response = orderService.deleteOrder(userDetails.getUsername(), orderId);
         //200 반환

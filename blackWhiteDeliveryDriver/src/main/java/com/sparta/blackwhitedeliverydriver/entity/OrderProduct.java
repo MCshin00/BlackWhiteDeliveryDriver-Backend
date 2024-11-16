@@ -20,14 +20,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @Table(name = "p_order_product")
-public class OrderProduct extends BaseEntity{
+public class OrderProduct extends BaseEntity {
     @Id
     @Column(nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID product;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @ManyToOne
     @JoinColumn(name = "order_id")
@@ -39,12 +40,12 @@ public class OrderProduct extends BaseEntity{
     @Column(nullable = false)
     private Integer price;
 
-    public static OrderProduct ofBasketAndOrder(Basket basket, Order order){
+    public static OrderProduct of(Basket basket, Product product, Order order) {
         return OrderProduct.builder()
-                //.product(basket.getProductId()) //product가 없기 때문에 임시값 대입
+                .product(product)
                 .order(order)
                 .quantity(basket.getQuantity())
-                .price(5000) //product가 없기 때문에 임시값 대입
+                .price(product.getPrice())
                 .build();
     }
 

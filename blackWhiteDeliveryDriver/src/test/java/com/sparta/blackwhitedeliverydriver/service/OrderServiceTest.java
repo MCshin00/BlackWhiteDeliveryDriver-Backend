@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
@@ -15,6 +16,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
@@ -28,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.swing.text.html.Option;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,8 +52,9 @@ class OrderServiceTest {
     @DisplayName("주문 생성 성공")
     void createOrder() {
         //given
-        String username = "user1";
-        String storeName = "storeName";
+        String username = "user";
+        String storeName = "store";
+        String productName = "product";
         UUID basketId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
@@ -62,14 +64,22 @@ class OrderServiceTest {
                 .username(username)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
-        Basket basket = Basket.builder()
-                .id(basketId)
-                .user(user)
-                .quantity(2)
-                .build();
         Store store = Store.builder()
                 .storeId(storeId)
                 .storeName(storeName)
+                .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .name(productName)
+                .price(5000)
+                .store(store)
+                .build();
+        Basket basket = Basket.builder()
+                .id(basketId)
+                .user(user)
+                .store(store)
+                .product(product)
+                .quantity(2)
                 .build();
         Order order = Order.builder()
                 .id(orderId)
@@ -80,9 +90,9 @@ class OrderServiceTest {
         OrderProduct orderProduct = OrderProduct.builder()
                 .id(orderProductId)
                 .order(order)
-                .product(productId)
+                .product(product)
                 .quantity(2)
-                .price(5000)
+                .price(product.getPrice())
                 .build();
 
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
@@ -90,8 +100,10 @@ class OrderServiceTest {
         given(orderRepository.save(any())).willReturn(order);
         when(orderProductRepository.saveAll(any())).thenReturn(List.of(orderProduct));
         doNothing().when(basketRepository).deleteAll(any());
+
         //when
         OrderResponseDto response = orderService.createOrder(username);
+
         //then
         Assertions.assertEquals(10000, order.getFinalPay());
         Assertions.assertEquals(orderId, response.getOrderId());
@@ -109,14 +121,8 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 생성 실패2 : 상품이 존재하지 않는 경우")
+    @DisplayName("주문 생성 실패2 : 장바구니가 존재하지 않는 경우")
     void createOrder_fail2() {
-        // Product 엔티티 생성 후 구현 예정
-    }
-
-    @Test
-    @DisplayName("주문 생성 실패3 : 장바구니가 존재하지 않는 경우")
-    void createOrder_fail3() {
         //given
         String username = "user1";
         User user = User.builder()
@@ -124,6 +130,7 @@ class OrderServiceTest {
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
         List<Basket> baskets = new ArrayList<>();
+
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         when(basketRepository.findAllById(any())).thenReturn(baskets);
 
@@ -161,11 +168,12 @@ class OrderServiceTest {
         given(orderRepository.findById(any())).willReturn(Optional.ofNullable(order));
 
         //when
-        OrderGetResponseDto response = orderService.getOrderDetail(username, orderId);
+        OrderGetDetailResponseDto response = orderService.getOrderDetail(username, orderId);
 
         //then
         assertEquals(username, response.getUsername());
         assertEquals(orderId, response.getOrderId());
+        assert order != null;
         assertEquals(order.getFinalPay(), response.getFinalPay());
     }
 
@@ -173,8 +181,8 @@ class OrderServiceTest {
     @DisplayName("주문 상세 조회 실패1 : 유저가 없는 경우")
     void getOrderDetail_fail1() {
         //given
-        UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
-        String username = "user1";
+        UUID orderId = UUID.randomUUID();
+        String username = "user";
 
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
@@ -188,7 +196,7 @@ class OrderServiceTest {
     @DisplayName("주문 상세 조회 실패2 : 주문서가 없는 경우")
     void getOrderDetail_fail2() {
         //given
-        UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
+        UUID orderId = UUID.randomUUID();
         String username = "user1";
         User user = User.builder()
                 .username(username)
@@ -251,14 +259,14 @@ class OrderServiceTest {
     @DisplayName("주문 목록 조회 성공")
     void getOrders_success() {
         //given
-        UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
-        String username = "user1";
+        UUID orderId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        String username = "user";
+        String storeName = "store";
         User user = User.builder()
                 .username(username)
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
-        UUID storeId = UUID.randomUUID();
-        String storeName = "store";
         Store store = Store.builder()
                 .storeId(storeId)
                 .storeName(storeName)
@@ -314,6 +322,7 @@ class OrderServiceTest {
         String storeName = "store";
         Store store = Store.builder()
                 .storeId(storeId)
+                .user(user)
                 .storeName(storeName)
                 .build();
         Order order = Order.builder()
@@ -334,6 +343,7 @@ class OrderServiceTest {
         OrderResponseDto response = orderService.updateOrderStatus(username, request);
 
         //then
+        assert order != null;
         assertEquals(OrderStatusEnum.ACCEPTED, order.getStatus());
         assertEquals(orderId, response.getOrderId());
     }
@@ -343,7 +353,7 @@ class OrderServiceTest {
     void updateOrderStatus_fail1() {
         //given
         String username = "owner";
-        UUID orderId = UUID.fromString("2b6ad274-8f98-44c2-9321-ea0de46b3ec6");
+        UUID orderId = UUID.randomUUID();
         OrderUpdateRequestDto request = new OrderUpdateRequestDto(orderId, OrderStatusEnum.ACCEPTED);
 
         when(userRepository.findById(any())).thenReturn(Optional.empty());
@@ -380,7 +390,43 @@ class OrderServiceTest {
     @Test
     @DisplayName("주문 상태 수정 실패3 : 주문서의 점포 주인과 유저가 다른 경우")
     void updateOrderStatus_fail3() {
-        // code
+        //given
+        UUID orderId = UUID.randomUUID();
+        UUID storeId = UUID.randomUUID();
+        String username = "owner";
+        String username2 = "owner2";
+        String storeName = "store";
+        User user = User.builder()
+                .username(username)
+                .role(UserRoleEnum.OWNER)
+                .build();
+        User user2 = User.builder()
+                .username(username2)
+                .role(UserRoleEnum.OWNER)
+                .build();
+        Store store = Store.builder()
+                .storeId(storeId)
+                .user(user)
+                .storeName(storeName)
+                .build();
+        Order order = Order.builder()
+                .id(orderId)
+                .user(user)
+                .store(store)
+                .status(OrderStatusEnum.CREATE)
+                .discountAmount(0)
+                .discountRate(0)
+                .finalPay(10000)
+                .build();
+        OrderUpdateRequestDto request = new OrderUpdateRequestDto(orderId, OrderStatusEnum.ACCEPTED);
+
+        given(userRepository.findById(any())).willReturn(Optional.ofNullable(user2));
+        given(orderRepository.findById(any())).willReturn(Optional.ofNullable(order));
+
+        //when & then
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> orderService.updateOrderStatus(username2, request));
+        assertEquals("점포 오너 권한이 없습니다.", exception.getMessage());
     }
 
     @Test
@@ -414,10 +460,13 @@ class OrderServiceTest {
                 .store(store)
                 .status(OrderStatusEnum.CREATE)
                 .build();
+        Product product = Product.builder()
+                .productId(productId)
+                .build();
         OrderProduct orderProduct = OrderProduct.builder()
                 .id(orderProductId)
                 .order(order)
-                .product(productId)
+                .product(product)
                 .quantity(2)
                 .price(5000)
                 .build();
@@ -430,6 +479,7 @@ class OrderServiceTest {
         doNothing().when(orderRepository).delete(any());
 
         //when
+        assert order != null;
         OrderResponseDto response = new OrderResponseDto(order.getId());
 
         //then
@@ -477,9 +527,6 @@ class OrderServiceTest {
         String username1 = "user1";
         String username2 = "user2";
         UUID orderId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
-        UUID orderProductId = UUID.randomUUID();
-
         User user1 = User.builder()
                 .username(username1)
                 .role(UserRoleEnum.CUSTOMER)
