@@ -53,10 +53,10 @@ public class StoreController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Owner 권한이 있어야 점포 생성이 가능합니다.");
         }
         // 카테고리 등록
-        Category category = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
+        List<Category> categoryList = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
 
         // 점포 등록
-        UUID storeId = storeService.createStore(requestDto, category, userDetails.getUser());
+        UUID storeId = storeService.createStore(requestDto, categoryList, userDetails.getUser());
 
         StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
 

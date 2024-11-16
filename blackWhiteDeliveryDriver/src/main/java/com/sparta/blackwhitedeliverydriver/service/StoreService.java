@@ -27,13 +27,16 @@ public class StoreService {
     private final StoreCategoryRepository storeCategoryRepository;
 
     @Transactional
-    public UUID createStore(@Valid StoreRequestDto requestDto, Category category, User user) {
+    public UUID createStore(@Valid StoreRequestDto requestDto, List<Category> categoryList, User user) {
         // 점포 중복확인 (이름, 전화번호)
 
         // 점포 등록
         Store store = Store.from(requestDto, user);
         storeRepository.save(store);
-        StoreCategory storeCategory = StoreCategory.from(store, category);
+        for(Category category : categoryList) {
+            StoreCategory storeCategory = StoreCategory.from(store, category);
+            storeCategoryRepository.save(storeCategory);
+        }
         return store.getStoreId();
     }
 
