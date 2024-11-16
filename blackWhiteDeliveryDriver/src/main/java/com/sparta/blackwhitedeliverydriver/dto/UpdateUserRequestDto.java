@@ -16,7 +16,7 @@ public class UpdateUserRequestDto {
     @Pattern(regexp = "^[a-zA-Z\\d!@#$%^&*()_+\\-=]*$")
     private String password;
 
-    @Email
+    @Pattern(regexp = "^(?=.{1,64}@)[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$")
     private String email;
 
     @Size(min = 11, max = 11)
