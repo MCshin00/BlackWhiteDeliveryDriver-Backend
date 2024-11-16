@@ -122,6 +122,11 @@ public class AddressService {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
+        // 삭제하는 배송지가 사용자의 현재(기본)배송지라면 현재(기본)배송지를 null로 처리
+        if (user.getCurrentAddress().equals(address)) {
+            user.updateCurrentAddress(null);
+        }
+
         address.setDeletedBy(user.getUsername());
         address.setDeletedDate(LocalDateTime.now());
 
