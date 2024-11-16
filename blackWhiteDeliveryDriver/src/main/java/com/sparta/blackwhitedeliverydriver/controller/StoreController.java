@@ -29,7 +29,7 @@ public class StoreController {
     @GetMapping("/")
     public ResponseEntity<?> getStores(){
         // 전체 점포 목록 조회
-        List<StoreResponseDto> storeResponseDtoList = storeService.getStores();
+        List<StoreResponseDto> storeResponseDtoList = storeService.getStoreList();
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoList);
     }
 
