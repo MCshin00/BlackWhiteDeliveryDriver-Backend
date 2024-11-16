@@ -1,6 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
-import com.sparta.blackwhitedeliverydriver.controller.PayRefundRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayGetResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayRefundRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayApproveResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayCancelResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
@@ -11,6 +12,7 @@ import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
 import com.sparta.blackwhitedeliverydriver.entity.Pay;
 import com.sparta.blackwhitedeliverydriver.entity.PayStatusEnum;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.PayExceptionMessage;
@@ -19,8 +21,9 @@ import com.sparta.blackwhitedeliverydriver.repository.PayRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import com.sparta.blackwhitedeliverydriver.util.HttpUtil;
 import com.sparta.blackwhitedeliverydriver.util.PayUtil;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -154,5 +157,22 @@ public class PayService {
         if (!order.getStatus().equals(OrderStatusEnum.CREATE)) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_PAY_STATUS.getMessage());
         }
+    }
+
+    public List<PayGetResponseDto> getPays(String username) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_PUBLIC.getMessage()));
+
+        //유저 권한별 반환
+        List<Pay> pays;
+        UserRoleEnum role = user.getRole();
+        if (role.equals(UserRoleEnum.CUSTOMER)) {
+            pays = payRepository.findAllByUser(username);
+        } else {
+            pays = payRepository.findAll();
+        }
+
+        return pays.stream().map(PayGetResponseDto::fromPay).collect(Collectors.toList());
     }
 }
