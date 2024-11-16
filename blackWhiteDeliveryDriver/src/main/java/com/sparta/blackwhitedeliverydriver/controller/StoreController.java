@@ -3,24 +3,20 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import com.sparta.blackwhitedeliverydriver.dto.StoreIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
+import com.sparta.blackwhitedeliverydriver.entity.Category;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
+import com.sparta.blackwhitedeliverydriver.service.CategoryService;
 import com.sparta.blackwhitedeliverydriver.service.StoreService;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,11 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class StoreController {
 
     private final StoreService storeService;
+    private final CategoryService categoryService;
 
     @GetMapping("/")
     public ResponseEntity<?> getStores(){
         // 전체 점포 목록 조회
-        List<StoreResponseDto> storeResponseDtoList = storeService.getStores();
+        List<StoreResponseDto> storeResponseDtoList = storeService.getStoreList();
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoList);
     }
 
@@ -55,8 +52,11 @@ public class StoreController {
         if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Owner 권한이 있어야 점포 생성이 가능합니다.");
         }
+        // 카테고리 등록
+        List<Category> categoryList = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
+
         // 점포 등록
-        UUID storeId = storeService.createStore(requestDto, userDetails.getUser());
+        UUID storeId = storeService.createStore(requestDto, categoryList, userDetails.getUser());
 
         StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
 

@@ -1,12 +1,13 @@
 package com.sparta.blackwhitedeliverydriver.dto;
 
 import com.sparta.blackwhitedeliverydriver.entity.Store;
-import java.time.LocalTime;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalTime;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -26,8 +27,9 @@ public class StoreResponseDto {
     private String streetNumber;
     private String detailAddr;
     private String storeIntro;
+    private String category;
 
-    public static StoreResponseDto from(Store store) {
+    public static StoreResponseDto from(Store store, String categoryNames) {
         return StoreResponseDto.builder()
                 .storeId(store.getStoreId())
                 .storeName(store.getStoreName())
@@ -42,6 +44,7 @@ public class StoreResponseDto {
                 .streetNumber(store.getStreetNumber())
                 .detailAddr(store.getDetailAddr())
                 .storeIntro(store.getStoreIntro())
+                .category(categoryNames)
                 .build();
     }
 }

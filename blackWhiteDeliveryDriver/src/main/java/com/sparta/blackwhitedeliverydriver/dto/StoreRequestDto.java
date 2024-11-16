@@ -31,4 +31,6 @@ public class StoreRequestDto {
     private String detailAddr;
     @NotBlank
     private String storeIntro;
+
+    private String category;
 }

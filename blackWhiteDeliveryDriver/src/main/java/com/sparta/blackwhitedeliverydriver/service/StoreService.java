@@ -2,42 +2,46 @@ package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
+import com.sparta.blackwhitedeliverydriver.entity.Category;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
+import com.sparta.blackwhitedeliverydriver.entity.StoreCategory;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.repository.CategoryRepository;
+import com.sparta.blackwhitedeliverydriver.repository.StoreCategoryRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.validation.Valid;
-import java.nio.file.NotLinkException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class StoreService {
     private final StoreRepository storeRepository;
+    private final StoreCategoryRepository storeCategoryRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
-    public UUID createStore(@Valid StoreRequestDto requestDto, User user) {
+    public UUID createStore(@Valid StoreRequestDto requestDto, List<Category> categoryList, User user) {
         // 점포 중복확인 (이름, 전화번호)
 
         // 점포 등록
-        storeRepository.save(Store.from(requestDto, user));
-
-        // 점포 조회
-        Optional<Store> res = Optional.ofNullable(
-                storeRepository.findByStoreNameAndPhoneNumber(requestDto.getStoreName(), requestDto.getPhoneNumber())
-                        .orElseThrow(
-                                () -> new IllegalArgumentException("점포를 찾을 수 없습니다.")
-                        ));
-
-        return res.get().getStoreId();
+        Store store = Store.from(requestDto, user);
+        storeRepository.save(store);
+        for(Category category : categoryList) {
+            StoreCategory storeCategory = StoreCategory.from(store, category);
+            storeCategoryRepository.save(storeCategory);
+        }
+        return store.getStoreId();
     }
 
     @Transactional
@@ -52,12 +56,23 @@ public class StoreService {
         return store.getStoreId();
     }
 
-    public List<StoreResponseDto> getStores() {
+    public List<StoreResponseDto> getStoreList() {
         List<Store> storeList = storeRepository.findAll();
         List<StoreResponseDto> storeResponseDtoList = new ArrayList<>();
 
         for (Store store : storeList) {
-            storeResponseDtoList.add(StoreResponseDto.from(store));
+            List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
+            List<String> categoryNameList = new ArrayList<>();
+            for (StoreCategory storeCategory : storeCategoryList){
+                Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
+                        () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
+                ));
+
+                categoryNameList.add(category.get().getName());
+            }
+            String categoryNames = categoryNameList.stream().collect(Collectors.joining(", "));
+
+            storeResponseDtoList.add(StoreResponseDto.from(store, categoryNames));
         }
 
         return storeResponseDtoList;
@@ -67,7 +82,19 @@ public class StoreService {
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new NullPointerException("해당 점포를 찾을 수 없습니다.")
         );
-        return StoreResponseDto.from(store);
+
+        List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
+        List<String> categoryNameList = new ArrayList<>();
+        for (StoreCategory storeCategory : storeCategoryList){
+            Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
+                    () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
+            ));
+
+            categoryNameList.add(category.get().getName());
+        }
+        String categoryNames = categoryNameList.stream().collect(Collectors.joining(", "));
+
+        return StoreResponseDto.from(store, categoryNames);
     }
 
     @Transactional
@@ -85,7 +112,18 @@ public class StoreService {
         List<StoreResponseDto> responseDtoList = new ArrayList<>();
 
         for (Store store : storeList) {
-            responseDtoList.add(StoreResponseDto.from(store));
+            List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
+            List<String> categoryNameList = new ArrayList<>();
+            for (StoreCategory storeCategory : storeCategoryList){
+                Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
+                        () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
+                ));
+
+                categoryNameList.add(category.get().getName());
+            }
+            String categoryNames = categoryNameList.stream().collect(Collectors.joining(", "));
+
+            responseDtoList.add(StoreResponseDto.from(store, categoryNames));
         }
 
         return responseDtoList;
