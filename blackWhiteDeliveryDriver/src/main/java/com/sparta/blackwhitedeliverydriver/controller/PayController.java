@@ -1,6 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
 import com.sparta.blackwhitedeliverydriver.dto.PayApproveResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayRefundResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
@@ -44,6 +45,17 @@ public class PayController {
                                                           @RequestParam("tid") String tid) {
         log.info("{}", tid);
         PayApproveResponseDto response = payService.approvePay(userDetails.getUsername(), pgToken, tid);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Secured({"ROLE_CUSTOMER"})
+    @PostMapping("/refund")
+    public ResponseEntity<PayRefundResponseDto> refundPay(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                          @RequestBody PayRefundRequestDto request) {
+        //환불
+        PayRefundResponseDto response = payService.refundPayment(userDetails.getUsername(), request);
+
+        //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

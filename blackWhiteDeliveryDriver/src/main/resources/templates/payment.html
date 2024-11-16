@@ -6,14 +6,13 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
-            // 페이지 로드 시 로컬 스토리지에서 JWT 가져오기
             const storedJwt = localStorage.getItem('jwt');
             if (storedJwt) {
-                $("#jwt").val(storedJwt); // 저장된 JWT가 있으면 입력 필드에 설정
+                $("#jwt").val(storedJwt);
             }
 
+            // 결제 버튼 클릭 이벤트
             $("#submitBtn").click(function () {
-                // 폼 데이터를 읽어오기
                 var orderId = $("#orderId").val();
                 var jwtToken = $("#jwt").val();
 
@@ -22,30 +21,52 @@
                     return;
                 }
 
-                // AJAX 요청
                 $.ajax({
                     type: "POST",
                     url: "/api/v1/pay/ready",
                     contentType: "application/json",
                     dataType: "json",
                     headers: {
-                        Authorization: "Bearer " + jwtToken // Authorization 헤더에 JWT 토큰 추가
+                        Authorization: "Bearer " + jwtToken
                     },
-                    data: JSON.stringify({orderId: orderId}), // JSON 형태로 데이터 전송
+                    data: JSON.stringify({ orderId: orderId }),
                     success: function (result) {
-                        // 성공 시 결제 팝업 열기
                         window.open(result.next_redirect_pc_url, "pay_pop", "width=500, height=500, top=100, left=200, location=no");
-
-                        // tid와 jwt를 로컬 스토리지에 저장
                         localStorage.setItem('tid', result.tid);
-                        localStorage.setItem('jwt', jwtToken); // JWT도 저장
+                        localStorage.setItem('jwt', jwtToken);
                     },
                     error: function (error) {
                         console.log("결제 실패");
                         console.log(error);
+                    }
+                });
+            });
+
+            // 환불 버튼 클릭 이벤트
+            $("#refundBtn").click(function () {
+                var orderId = $("#orderId").val();
+                var jwtToken = $("#jwt").val();
+
+                if (!orderId || !jwtToken) {
+                    alert("Order ID와 JWT Token을 모두 입력해주세요.");
+                    return;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: "/api/v1/pay/refund",
+                    contentType: "application/json",
+                    dataType: "json",
+                    headers: {
+                        Authorization: "Bearer " + jwtToken
                     },
-                    complete: function (xhr, status) {
-                        console.log("Request completed with status: " + status);
+                    data: JSON.stringify({ orderId: orderId }),
+                    success: function (result) {
+                        alert("환불 성공: " + result.message);
+                    },
+                    error: function (error) {
+                        alert("환불 실패: " + error.responseJSON.message);
+                        console.log(error);
                     }
                 });
             });
@@ -63,6 +84,7 @@
         <input type="text" id="jwt" name="jwt" placeholder="JWT 토큰 입력">
         <br><br>
         <button id="submitBtn" type="button">결제</button>
+        <button id="refundBtn" type="button">환불</button>
     </form>
 </div>
 </body>

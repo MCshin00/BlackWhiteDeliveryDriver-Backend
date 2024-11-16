@@ -1,10 +1,11 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.controller.PayRefundRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayApproveResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayCancelResponseDto;
-import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
 import com.sparta.blackwhitedeliverydriver.entity.Pay;
@@ -23,7 +24,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -102,6 +102,46 @@ public class PayService {
         return approveResponse;
     }
 
+    @Transactional
+    public PayRefundResponseDto refundPayment(String username, PayRefundRequestDto request) {
+        //환불 조건에 대해서 필수 요구 사항 확인 필요
+
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_PUBLIC.getMessage()));
+
+        //주문 유효성
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+
+        //유저와 주문 유저의 유효성
+        checkOrderUser(order, user);
+
+        //pay 유효성
+        Pay pay = payRepository.findByOrder(order)
+                .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
+
+        //100% 환불로 일단 구현
+        int cancelAmount = pay.getPayAmount();
+
+        //카카오 페이 서버로 보낼 요청 생성 및 api 호출
+        Map<String, String> parameters = payUtil.getRefundParameters(pay, cancelAmount);
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, payUtil.getHeaders());
+        RestTemplate restTemplate = new RestTemplate();
+        PayCancelResponseDto cancelResponse = restTemplate.postForObject(PAY_URI + "/payment/cancel", requestEntity,
+                PayCancelResponseDto.class);
+
+        //주문 상태 업데이트
+        order.updateStatus(OrderStatusEnum.CANCEL);
+
+        //pay 업데이트
+        assert cancelResponse != null;
+        pay.updateByRefund(PayStatusEnum.REFUND, cancelResponse.getCanceled_amount().getTotal(),
+                cancelResponse.getCanceled_at());
+
+        return new PayRefundResponseDto("주문을 취소했습니다.");
+    }
+
     private void checkOrderUser(Order order, User user) {
         String orderUsername = order.getUser().getUsername();
         String username = user.getUsername();
@@ -114,43 +154,5 @@ public class PayService {
         if (!order.getStatus().equals(OrderStatusEnum.CREATE)) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_PAY_STATUS.getMessage());
         }
-    }
-
-    //결제 환불
-    //예약 상태 -> cancel, pay 상태 -> Refund , pay entity 환불금액 update
-    @Transactional
-    public PayRefundResponseDto refundPay(String username, UUID orderId) {
-
-        //유저 유효성
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-
-        //주문 유효성
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
-
-        Pay pay = payRepository.findByOrder(order)
-                .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
-
-        int cancelAmount = pay.getRefundAmount();
-
-        //환불 요청
-        Map<String, String> parameters = payUtil.getRefundParameters(pay, cancelAmount);
-
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, payUtil.getHeaders());
-        RestTemplate restTemplate = new RestTemplate();
-
-        PayCancelResponseDto payCancelResponse = restTemplate.postForObject(PAY_URI + "/payment/cancel",
-                requestEntity, PayCancelResponseDto.class);
-
-        //주문 상태 cancel update
-        order.updateStatus(OrderStatusEnum.CANCEL);
-
-        //pay 상태 refund update -> soft delete 기법 사용 (삭제는 하지 않는다) -> 추후 환불에 대한 내역을 볼 수 있도록
-        assert payCancelResponse != null;
-        pay.updateByRefund(PayStatusEnum.REFUND, payCancelResponse.getCanceled_amount().getTotal(),
-                payCancelResponse.getCanceled_at());
-
-        return new PayRefundResponseDto("주문을 취소했습니다.");
     }
 }
