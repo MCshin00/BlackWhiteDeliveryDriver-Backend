@@ -10,6 +10,7 @@ import com.sparta.blackwhitedeliverydriver.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -27,13 +28,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequestDto requestDto) {
+    public ResponseEntity<UsernameResponseDto> signup(@Valid @RequestBody SignupRequestDto requestDto) {
         // 사용자 등록 처리
         UsernameResponseDto responseDto = userService.signup(requestDto, null);
 
@@ -43,7 +44,7 @@ public class UserController {
 
     @Secured("ROLE_MASTER")
     @PostMapping("/signup/master")
-    public ResponseEntity<?> signupManager(@Valid @RequestBody SignupRequestDto requestDto) {
+    public ResponseEntity<UsernameResponseDto> signupManager(@Valid @RequestBody SignupRequestDto requestDto) {
         // 사용자 등록 처리
         UsernameResponseDto responseDto = userService.signup(requestDto, UserRoleEnum.MASTER);
 
@@ -52,16 +53,30 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getUserInfo(@RequestParam String username) {
+    public ResponseEntity<UserResponseDto> getUserInfo(@RequestParam String username, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 가져오기
-        UserResponseDto responseDto = userService.getUserInfo(username);
+        UserResponseDto responseDto = userService.getUserInfo(username, userDetails.getUsername());
 
         // 성공 응답으로 200 OK와 사용자 ID 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<UserResponseDto>> searchUser(
+            @RequestParam String keyword,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Page<UserResponseDto> responseDtos = userService.searchUser(
+                keyword, page - 1, size, sortBy, isAsc, userDetails.getUsername());
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseDtos);
+    }
+
     @PutMapping("/")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<UsernameResponseDto> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 업데이트
         UsernameResponseDto responseDto = userService.updateUser(requestDto, userDetails.getUsername());
 
@@ -71,7 +86,7 @@ public class UserController {
 
     @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
     @PutMapping("/{username}")
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @PathVariable String username) {
+    public ResponseEntity<UsernameResponseDto> updateUser(@Valid @RequestBody UpdateUserRequestDto requestDto, @PathVariable String username) {
         // 사용자 정보 업데이트
         UsernameResponseDto responseDto = userService.updateUser(requestDto, username);
 
@@ -80,7 +95,7 @@ public class UserController {
     }
 
     @DeleteMapping("/")
-    public ResponseEntity<?> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<UsernameResponseDto> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 사용자 정보 삭제(soft-delete)
         UsernameResponseDto responseDto = userService.deleteUser(userDetails.getUsername());
 
@@ -90,7 +105,7 @@ public class UserController {
 
     @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
     @DeleteMapping("/{username}")
-    public ResponseEntity<?> deleteUser(@PathVariable String username) {
+    public ResponseEntity<UsernameResponseDto> deleteUser(@PathVariable String username) {
         // 사용자 정보 삭제(soft-delete)
         UsernameResponseDto responseDto = userService.deleteUser(username);
 

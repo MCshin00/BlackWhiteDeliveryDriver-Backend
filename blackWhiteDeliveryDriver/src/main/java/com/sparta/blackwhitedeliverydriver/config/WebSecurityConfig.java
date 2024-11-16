@@ -1,6 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.config;
 
 import com.sparta.blackwhitedeliverydriver.jwt.JwtUtil;
+import com.sparta.blackwhitedeliverydriver.security.AuthenticationValidator;
 import com.sparta.blackwhitedeliverydriver.security.JwtAuthenticationFilter;
 import com.sparta.blackwhitedeliverydriver.security.JwtAuthorizationFilter;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsServiceImpl;
@@ -25,6 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig {
 
     private final JwtUtil jwtUtil;
+    private final AuthenticationValidator authenticationValidator;
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
 
@@ -40,7 +42,7 @@ public class WebSecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, authenticationValidator);
         filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
         return filter;
     }
@@ -62,7 +64,11 @@ public class WebSecurityConfig {
 
         http.authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
-                        .requestMatchers("/users/signup").anonymous() // 회원가입은 인증처리가 되지 않은 대상에게만 허가
+                        .requestMatchers("/api/v1/users/signup").anonymous() // 회원가입은 인증처리가 되지 않은 대상에게만 허가
+                        .requestMatchers("/payment").permitAll()
+                        .requestMatchers("/payment/success").permitAll()
+                        .requestMatchers("/payment/fail").permitAll()
+                        .requestMatchers("/payment/cancel").permitAll()
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 

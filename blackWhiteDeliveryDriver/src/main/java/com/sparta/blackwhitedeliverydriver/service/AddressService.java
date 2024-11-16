@@ -10,22 +10,29 @@ import com.sparta.blackwhitedeliverydriver.repository.AddressRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AddressService {
 
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
 
-    public AddressIdResponseDto createAddress(@Valid AddressRequestDto requestDto, User user) {
+    @Transactional
+    public AddressIdResponseDto createAddress(@Valid AddressRequestDto requestDto, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = Address.from(requestDto, user);
         addressRepository.save(address);
 
@@ -33,7 +40,10 @@ public class AddressService {
     }
 
     @Transactional
-    public AddressIdResponseDto updateAddress(@Valid AddressRequestDto requestDto, UUID addressId, User user) {
+    public AddressIdResponseDto updateAddress(@Valid AddressRequestDto requestDto, UUID addressId, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -49,19 +59,42 @@ public class AddressService {
         return new AddressIdResponseDto(address.getId());
     }
 
-    public List<AddressResponseDto> getAllAddresses(User user) {
-        List<Address> addresses = addressRepository.findAllByUserAndNotDeleted(user);
-        List<AddressResponseDto> addressResponseDtos = new ArrayList<>();
+    public Page<AddressResponseDto> getAllAddresses(String username, int page, int size, String sortBy, boolean isAsc) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
-        for (Address address : addresses) {
-            addressResponseDtos.add(AddressResponseDto.from(address));
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
         }
 
-        return addressResponseDtos;
+        // 페이징 처리
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 페이징이 적용된 Address 리스트를 가져온다
+        Page<Address> addressPage = addressRepository.findAllByUserAndDeletedByIsNullAndDeletedDateIsNull(user, pageable);
+
+        return addressPage.map(AddressResponseDto::from);
+    }
+
+    public AddressResponseDto getCurrentAddress(String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        checkCurrentAddress(user);
+
+        Address address = addressRepository.findById(user.getCurrentAddress().getId())
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
+
+        return AddressResponseDto.from(address);
     }
 
     @Transactional
-    public AddressIdResponseDto setCurrentAddress(UUID addressId, User user) {
+    public AddressIdResponseDto setCurrentAddress(UUID addressId, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -69,14 +102,17 @@ public class AddressService {
             throw new AccessDeniedException(ExceptionMessage.NOT_ALLOWED_API.getMessage());
         }
 
-        user.setCurrentAddress(address);
+        user.updateCurrentAddress(address);
         userRepository.save(user);
 
         return new AddressIdResponseDto(address.getId());
     }
 
     @Transactional
-    public AddressIdResponseDto deleteAddress(UUID addressId, User user) {
+    public AddressIdResponseDto deleteAddress(UUID addressId, String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.ADDRESS_NOT_FOUND.getMessage()));
 
@@ -97,6 +133,12 @@ public class AddressService {
     private void checkDeletedAddress(Address address) {
         if (address.getDeletedDate() != null || address.getDeletedBy() != null) {
             throw new IllegalArgumentException(ExceptionMessage.ADDRESS_DELETED.getMessage());
+        }
+    }
+
+    private void checkCurrentAddress(User user) {
+        if (user.getCurrentAddress() == null) {
+            throw new IllegalArgumentException(ExceptionMessage.CURRNET_ADDRESS_NOT_FOUND.getMessage());
         }
     }
 }
