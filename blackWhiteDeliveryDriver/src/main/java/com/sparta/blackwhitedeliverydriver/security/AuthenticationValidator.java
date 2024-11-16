@@ -1,9 +1,12 @@
 package com.sparta.blackwhitedeliverydriver.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.RestApiException;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -38,6 +41,20 @@ public class AuthenticationValidator {
 
         if (user.getDeletedBy() != null && user.getDeletedDate() != null) {
             throw new IllegalStateException(ExceptionMessage.USER_DELETED.getMessage());
+        }
+    }
+
+    public void jwtExceptionHandler(HttpServletResponse response, String errorMessage, int statusCode) {
+        response.setStatus(statusCode);  // 상태 코드 설정
+        response.setContentType("application/json");  // 응답 형식 설정
+        response.setCharacterEncoding("UTF-8");  // 문자 인코딩 설정
+        try {
+            RestApiException exception = new RestApiException(errorMessage, statusCode);
+            String json = new ObjectMapper().writeValueAsString(exception);
+
+            response.getWriter().write(json);
+        } catch (Exception e) {
+            log.error(e.getMessage());
         }
     }
 }
