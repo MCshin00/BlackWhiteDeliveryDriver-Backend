@@ -25,6 +25,8 @@ import com.sparta.blackwhitedeliverydriver.repository.PayRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import com.sparta.blackwhitedeliverydriver.util.HttpUtil;
 import com.sparta.blackwhitedeliverydriver.util.PayUtil;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -120,8 +122,6 @@ public class PayService {
 
     @Transactional
     public PayRefundResponseDto refundPayment(String username, PayRefundRequestDto request) {
-        //환불 조건에 대해서 필수 요구 사항 확인 필요
-
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_PUBLIC.getMessage()));
@@ -132,6 +132,9 @@ public class PayService {
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
         checkDeletedOrder(order);
 
+        //주문 상태 체크
+        checkOrderPendingStatus(order);
+
         //유저와 주문 유저의 유효성
         checkOrderUser(order, user);
 
@@ -139,6 +142,9 @@ public class PayService {
         Pay pay = payRepository.findByOrder(order)
                 .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
         checkDeletedPay(pay);
+
+        // **Pay 생성 시간이 5분 이내인지 확인**
+        checkPayWithinFiveMinutes(pay);
 
         //100% 환불로 일단 구현
         int cancelAmount = pay.getPayAmount();
@@ -245,6 +251,26 @@ public class PayService {
     private void checkOrderType(Order order) {
         if (order.getType().equals(OrderTypeEnum.OFFLINE)) {
             throw new IllegalArgumentException(PayExceptionMessage.PAY_OFFLINE_TYPE.getMessage());
+        }
+    }
+
+    private void checkOrderPendingStatus(Order order) {
+        if (!order.getStatus().equals(OrderStatusEnum.PENDING)) {
+            throw new IllegalArgumentException(PayExceptionMessage.PAY_UNABLE.getMessage());
+        }
+    }
+
+    private void checkPayWithinFiveMinutes(Pay pay) {
+        if (pay.getApprovedAt() == null) {
+            throw new IllegalArgumentException(PayExceptionMessage.PAY_UNABLE.getMessage());
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(pay.getApprovedAt(), now);
+
+        // 5분 초과 시 예외 발생
+        if (duration.toMinutes() > 5) {
+            throw new IllegalArgumentException(PayExceptionMessage.PAY_REFUND_TIME_EXCEEDED.getMessage());
         }
     }
 }
