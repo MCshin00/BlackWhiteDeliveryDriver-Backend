@@ -16,9 +16,11 @@ import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
+import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +44,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
 
     @Transactional
     public OrderResponseDto createOrder(String username, OrderAddRequestDto request) {
@@ -121,6 +124,36 @@ public class OrderService {
         } else {
             orders = orderRepository.findAll(pageable);
         }
+
+        return orders.map(OrderGetResponseDto::fromOrder);
+    }
+
+    public Page<OrderGetResponseDto> getOrdersByStore(String username, int page, int size, String sortBy, boolean isAsc,
+                                                      UUID storeId) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        //점포 유효성
+        Store store = storeRepository.findById(storeId).orElseThrow(() -> new NullPointerException(
+                StoreExceptionMessage.STORE_NOT_FOUND.getMessage()));
+
+        //유저 점포 유효성
+        UserRoleEnum role = user.getRole();
+        if (role.equals(UserRoleEnum.CUSTOMER)) {
+            checkStoreOwnerEquals(store, user);
+        }
+
+        //페이징
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        //주문 조회
+        Page<Order> orders = orderRepository.findAllByStoreAndNotDeleted(store, pageable);
 
         return orders.map(OrderGetResponseDto::fromOrder);
     }
@@ -205,5 +238,4 @@ public class OrderService {
             throw new IllegalArgumentException("점포 오너 권한이 없습니다.");
         }
     }
-
 }

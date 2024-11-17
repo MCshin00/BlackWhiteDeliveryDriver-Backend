@@ -69,6 +69,22 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(responseList);
     }
 
+    @Secured({"ROLE_OWNER", "ROLE_MASTER", "ROLE_MANAGER"})
+    @GetMapping("/{storeId}")
+    public ResponseEntity<Page<OrderGetResponseDto>> getOrdersByStore(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc,
+            @PathVariable UUID storeId) {
+        //주문 목록 조회
+        Page<OrderGetResponseDto> responseList = orderService.getOrdersByStore(userDetails.getUsername(), page - 1, size,
+                sortBy, isAsc, storeId);
+        //200 반환
+        return ResponseEntity.status(HttpStatus.OK).body(responseList);
+    }
+
     @Secured({"ROLE_OWNER", "ROEL_MASTER", "ROLE_MANAGER"})
     @PutMapping
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@AuthenticationPrincipal UserDetailsImpl userDetails,

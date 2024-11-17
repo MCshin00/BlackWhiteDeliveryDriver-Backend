@@ -1,6 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.repository;
 
 import com.sparta.blackwhitedeliverydriver.entity.Order;
+import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     Optional<Order> findByTid(String tid);
     @Query("SELECT o FROM Order o WHERE o.user = :user AND o.deletedDate IS NULL")
     Page<Order> findAllByUserAndNotDeleted(User user, Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE o.store = :store AND o.deletedDate IS NULL")
+    Page<Order> findAllByStoreAndNotDeleted(Store store, Pageable pageable);
 }

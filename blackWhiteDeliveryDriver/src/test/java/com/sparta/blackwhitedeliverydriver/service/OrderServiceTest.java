@@ -27,6 +27,7 @@ import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
+import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +45,12 @@ class OrderServiceTest {
     OrderRepository orderRepository = mock(OrderRepository.class);
     OrderProductRepository orderProductRepository = mock(OrderProductRepository.class);
     UserRepository userRepository = mock(UserRepository.class);
+    StoreRepository storeRepository = mock(StoreRepository.class);
 
     @BeforeEach
     public void setUp() {
-        orderService = new OrderService(basketRepository, orderRepository, orderProductRepository, userRepository);
+        orderService = new OrderService(basketRepository, orderRepository, orderProductRepository, userRepository,
+                storeRepository);
     }
 
     @Test
