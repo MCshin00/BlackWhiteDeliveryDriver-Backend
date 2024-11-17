@@ -120,16 +120,21 @@ public class ProductService {
         Optional<User> curUser = userRepository.findById(userDetails.getUsername());
         Optional<Product> curProduct = productRepository.findById(productId);
 
-        if(curUser.get().getRole().equals(UserRoleEnum.OWNER)){
-            // 가게 주인이 자신의 가게에 등록
-            String nameOfStoreOwner = getNameOfOwner(curProduct.get().getStore().getStoreId());
-            if(!nameOfStoreOwner.equals(curUser.get().getUsername())) {
+        if(curUser.isPresent()){
+            if(curUser.get().getRole().equals(UserRoleEnum.OWNER)){
+                // 가게 주인이 자신의 가게에 등록
+                if(curProduct.isPresent()){
+                    String nameOfStoreOwner = getNameOfOwner(curProduct.get().getStore().getStoreId());
+                    if(!nameOfStoreOwner.equals(curUser.get().getUsername())) {
+                        throw new IllegalArgumentException(StoreExceptionMessage.FORBIDDEN_ACCESS.getMessage());
+                    }
+                }
+                else { throw new NullPointerException(ProductExceptionMessage.PRODUCT_NOT_FOUND.getMessage()); }
+            }
+            else if(curUser.get().getRole().equals(UserRoleEnum.MANAGER) || curUser.get().getRole().equals(UserRoleEnum.MASTER)){
+                // 관리자가 점주의 가게 등록
                 throw new IllegalArgumentException(StoreExceptionMessage.FORBIDDEN_ACCESS.getMessage());
             }
-        }
-        else if(curUser.get().getRole().equals(UserRoleEnum.MANAGER) || curUser.get().getRole().equals(UserRoleEnum.MASTER)){
-            // 관리자가 점주의 가게 등록
-            throw new IllegalArgumentException(StoreExceptionMessage.FORBIDDEN_ACCESS.getMessage());
         }
 
         Product product = productRepository.findById(productId).orElseThrow(
