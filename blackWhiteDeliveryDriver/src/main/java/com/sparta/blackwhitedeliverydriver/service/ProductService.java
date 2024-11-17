@@ -8,6 +8,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
+import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ProductExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
@@ -67,8 +68,6 @@ public class ProductService {
         Store store = storeRepository.findById(requestDto.getStoreId()).orElseThrow(
                 () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
-        Product product = Product.from(requestDto, store);
-        productRepository.save(product);
 
         // 같은 가게 동일 음식 확인
         Optional<Product> product = productRepository.findByNameAndStoreStoreId(requestDto.getProductName(), store.getStoreId());
