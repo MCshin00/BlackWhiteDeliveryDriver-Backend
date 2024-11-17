@@ -48,8 +48,7 @@ public class StoreService {
     @Transactional
     public StoreIdResponseDto createStore(@Valid StoreRequestDto requestDto, User user) {
         // 점포 중복확인 (이름)
-        Optional<Store> requestStoreName = storeRepository.findByStoreName(requestDto.getStoreName());
-        if(checkStoreName(requestStoreName.get().getStoreName())) {
+        if(checkStoreName(requestDto.getStoreName())) {
             throw new IllegalArgumentException(StoreExceptionMessage.DUPLICATED_STORE_NAME.getMessage());
         }
         // 전화번호는 같은 사장이 등록하는 경우도 있을거 같음
