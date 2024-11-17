@@ -70,7 +70,15 @@ public class ProductService {
         Product product = Product.from(requestDto, store);
         productRepository.save(product);
 
-        ProductIdResponseDto productIdResponseDto = new ProductIdResponseDto(product.getProductId());
+        // 같은 가게 동일 음식 확인
+        Optional<Product> product = productRepository.findByNameAndStoreStoreId(requestDto.getProductName(), store.getStoreId());
+        if(product.isPresent()){
+            throw new IllegalArgumentException(ProductExceptionMessage.DUPLICATED_STORE_NAME.getMessage());
+        }
+        Product newProduct = Product.from(requestDto, store);
+        productRepository.save(newProduct);
+
+        ProductIdResponseDto productIdResponseDto = new ProductIdResponseDto(newProduct.getProductId());
         return productIdResponseDto;
     }
 
