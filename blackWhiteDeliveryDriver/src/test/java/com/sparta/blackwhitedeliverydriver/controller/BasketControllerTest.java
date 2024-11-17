@@ -1,7 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -21,6 +20,7 @@ import com.sparta.blackwhitedeliverydriver.mock.user.MockUser;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -49,21 +48,23 @@ class BasketControllerTest {
 
     private static final String BASE_URL = "/api/v1";
 
+
+    @BeforeEach
+    void setUp() {
+    }
+
     @Test
     @DisplayName("장바구니 담기 성공")
     @MockUser(role = UserRoleEnum.CUSTOMER)
     void addProductToBasket_success() throws Exception {
         //given
-        UUID productId = UUID.randomUUID();
-        UUID basketId = UUID.randomUUID();
-        UUID storeId = UUID.randomUUID();
-        int quantity = 2;
         BasketAddRequestDto request = BasketAddRequestDto.builder()
-                .productId(productId)
-                .storeId(storeId)
-                .quantity(quantity)
+                .productId(UUID.randomUUID())
+                .quantity(2)
                 .build();
-        BasketResponseDto response = new BasketResponseDto(basketId);
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
+                .build();
 
         //when
         when(basketService.addProductToBasket(any(), any())).thenReturn(response);
@@ -78,20 +79,65 @@ class BasketControllerTest {
     }
 
     @Test
-    @DisplayName("장바구니 담기 실패 : 권한이 CUSTOMER 아닌 경우")
+    @DisplayName("장바구니 담기 실패1 : 권한이 OWNER인 경우")
     @MockUser(role = UserRoleEnum.OWNER)
-    void addProductToBasket_fail() throws Exception {
+    void addProductToBasket_fail1() throws Exception {
         //given
-        UUID productId = UUID.randomUUID();
-        UUID basketId = UUID.randomUUID();
-        UUID storeId = UUID.randomUUID();
-        int quantity = 2;
         BasketAddRequestDto request = BasketAddRequestDto.builder()
-                .productId(productId)
-                .storeId(storeId)
-                .quantity(quantity)
+                .productId(UUID.randomUUID())
+                .quantity(2)
                 .build();
-        BasketResponseDto response = new BasketResponseDto(basketId);
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
+                .build();
+
+        //when
+        when(basketService.addProductToBasket(any(), any())).thenReturn(response);
+
+        //then
+        String body = mapper.writeValueAsString(request);
+        mvc.perform(post(BASE_URL + "/baskets")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("장바구니 담기 실패2 : 권한이 MANAGER인 경우")
+    @MockUser(role = UserRoleEnum.MANAGER)
+    void addProductToBasket_fail2() throws Exception {
+        //given
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(UUID.randomUUID())
+                .quantity(2)
+                .build();
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
+                .build();
+
+        //when
+        when(basketService.addProductToBasket(any(), any())).thenReturn(response);
+
+        //then
+        String body = mapper.writeValueAsString(request);
+        mvc.perform(post(BASE_URL + "/baskets")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("장바구니 담기 실패3 : 권한이 MASTER인 경우")
+    @MockUser(role = UserRoleEnum.MASTER)
+    void addProductToBasket_fail3() throws Exception {
+        //given
+        BasketAddRequestDto request = BasketAddRequestDto.builder()
+                .productId(UUID.randomUUID())
+                .quantity(2)
+                .build();
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
+                .build();
 
         //when
         when(basketService.addProductToBasket(any(), any())).thenReturn(response);
@@ -109,134 +155,201 @@ class BasketControllerTest {
     @MockUser(role = UserRoleEnum.CUSTOMER)
     void removeProductFromBasket_success() throws Exception {
         //given
-        UUID basketId = UUID.randomUUID();
-        BasketResponseDto response = new BasketResponseDto(basketId);
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
+                .build();
 
         //when
         when(basketService.removeProductFromBasket(any(), any())).thenReturn(response);
 
         //then
-        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", basketId.toString()))
+        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", response.getBasketId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.basketId").exists());
     }
 
     @Test
-    @DisplayName("장바구니 빼기 실패 : 허용하지 않은 권한으로 호출")
+    @DisplayName("장바구니 빼기 실패1 : 권한이 OWNER인 경우")
     @MockUser(role = UserRoleEnum.OWNER)
-    void removeProductFromBasket_fail() throws Exception {
+    void removeProductFromBasket_fail1() throws Exception {
         //given
-        UUID basketId = UUID.randomUUID();
-        BasketResponseDto response = new BasketResponseDto(basketId);
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
+                .build();
 
         //when
         when(basketService.removeProductFromBasket(any(), any())).thenReturn(response);
 
         //then
-        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", basketId.toString()))
+        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", response.getBasketId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("장바구니 조회 성공")
-    @MockUser(role = UserRoleEnum.CUSTOMER, username = "user")
-    void getBaskets_success() throws Exception {
-        // given
-        String username = "user";
-        String storeName = "store";
-        String productName = "product";
-        Integer quantity = 2;
-        UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
-        UUID storeId = UUID.randomUUID();
-
-        BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
-                .basketId(basketId)
-                .username(username)
-                .storeId(storeId)
-                .productId(productId)
-                .quantity(quantity)
+    @DisplayName("장바구니 빼기 실패2 : 권한이 MANAGER인 경우")
+    @MockUser(role = UserRoleEnum.MANAGER)
+    void removeProductFromBasket_fail2() throws Exception {
+        //given
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
                 .build();
 
-        // 페이징 관련 설정
-        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "storeName"));
-        Page<BasketGetResponseDto> pageResponse = new PageImpl<>(List.of(responseDto), pageRequest, 1);
+        //when
+        when(basketService.removeProductFromBasket(any(), any())).thenReturn(response);
 
-        when(basketService.getBaskets(eq(username), eq(0), eq(10), eq("storeName"), eq(true)))
-                .thenReturn(pageResponse);
-
-        // when & then
-        mvc.perform(get(BASE_URL + "/baskets")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .param("sortBy", "storeName")
-                        .param("isAsc", "true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].basketId").value(basketId.toString()))
-                .andExpect(jsonPath("$.content[0].username").value(username))
-                .andExpect(jsonPath("$.content[0].storeId").value(storeId.toString()))
-                .andExpect(jsonPath("$.content[0].productId").value(productId.toString()))
-                .andExpect(jsonPath("$.content[0].quantity").value(quantity))
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(10));
+        //then
+        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", response.getBasketId()))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("장바구니 조회 실패: 유효하지 않은 사용자")
+    @DisplayName("장바구니 빼기 실패3 : 권한이 MASTER인 경우")
+    @MockUser(role = UserRoleEnum.MASTER)
+    void removeProductFromBasket_fail3() throws Exception {
+        //given
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(UUID.randomUUID())
+                .build();
+
+        //when
+        when(basketService.removeProductFromBasket(any(), any())).thenReturn(response);
+
+        //then
+        mvc.perform(delete(BASE_URL + "/baskets/{basketId}", response.getBasketId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 성공 : 권한이 CUSTOMER 경우")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
+    public void getBaskets_success1() throws Exception {
+        // Given
+        String username = "testUser";
+        int page = 1;
+        int size = 10;
+        String sortBy = "createdDate";
+        boolean isAsc = true;
+
+        // Mocking the service response
+        Page<BasketGetResponseDto> mockResponse = new PageImpl<>(List.of(BasketGetResponseDto.builder()
+                .basketId(UUID.randomUUID()).build()),
+                PageRequest.of(0, size), 1);
+        when(basketService.getBaskets(username, 0, size, sortBy, isAsc)).thenReturn(mockResponse);
+
+        // When & Then
+        mvc.perform(get(BASE_URL + "/baskets")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
+                        .param("sortBy", sortBy)
+                        .param("isAsc", String.valueOf(isAsc))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 성공2 : 권한이 MANAGER 경우")
+    @MockUser(role = UserRoleEnum.MANAGER)
+    public void getBaskets_success2() throws Exception {
+        // Given
+        String username = "testUser";
+        int page = 1;
+        int size = 10;
+        String sortBy = "createdDate";
+        boolean isAsc = true;
+
+        // Mocking the service response
+        Page<BasketGetResponseDto> mockResponse = new PageImpl<>(List.of(BasketGetResponseDto.builder()
+                .basketId(UUID.randomUUID()).build()),
+                PageRequest.of(0, size), 1);
+        when(basketService.getBaskets(username, 0, size, sortBy, isAsc)).thenReturn(mockResponse);
+
+        // When & Then
+        mvc.perform(get(BASE_URL + "/baskets")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
+                        .param("sortBy", sortBy)
+                        .param("isAsc", String.valueOf(isAsc))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 성공3 : 권한이 MASTER 경우")
+    @MockUser(role = UserRoleEnum.MASTER)
+    public void getBaskets_success3() throws Exception {
+        // Given
+        String username = "testUser";
+        int page = 1;
+        int size = 10;
+        String sortBy = "createdDate";
+        boolean isAsc = true;
+
+        // Mocking the service response
+        Page<BasketGetResponseDto> mockResponse = new PageImpl<>(List.of(BasketGetResponseDto.builder()
+                .basketId(UUID.randomUUID()).build()),
+                PageRequest.of(0, size), 1);
+        when(basketService.getBaskets(username, 0, size, sortBy, isAsc)).thenReturn(mockResponse);
+
+        // When & Then
+        mvc.perform(get(BASE_URL + "/baskets")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
+                        .param("sortBy", sortBy)
+                        .param("isAsc", String.valueOf(isAsc))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 실패1 : 권한이 OWNER 경우")
     @MockUser(role = UserRoleEnum.OWNER)
-    void getBaskets_fail_invalidUser() throws Exception {
-        // given
-        String username = "user";
-        String storeName = "store";
-        String productName = "product";
-        Integer quantity = 2;
-        UUID basketId = UUID.randomUUID();
-        UUID productId = UUID.randomUUID();
-        UUID storeId = UUID.randomUUID();
+    public void getBaskets_fail1() throws Exception {
+        // Given
+        String username = "testUser";
+        int page = 1;
+        int size = 10;
+        String sortBy = "createdDate";
+        boolean isAsc = true;
 
-        BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
-                .basketId(basketId)
-                .username(username)
-                .storeId(storeId)
-                .productId(productId)
-                .quantity(quantity)
-                .build();
+        // Mocking the service response
+        Page<BasketGetResponseDto> mockResponse = new PageImpl<>(List.of(BasketGetResponseDto.builder()
+                .basketId(UUID.randomUUID()).build()),
+                PageRequest.of(0, size), 1);
+        when(basketService.getBaskets(username, 0, size, sortBy, isAsc)).thenReturn(mockResponse);
 
-        // 페이징 관련 설정
-        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "storeName"));
-        Page<BasketGetResponseDto> pageResponse = new PageImpl<>(List.of(responseDto), pageRequest, 1);
-
-        when(basketService.getBaskets(eq(username), eq(0), eq(10), eq("storeName"), eq(true)))
-                .thenReturn(pageResponse);
-
-        // when & then
+        // When & Then
         mvc.perform(get(BASE_URL + "/baskets")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .param("sortBy", "storeName")
-                        .param("isAsc", "true"))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
+                        .param("sortBy", sortBy)
+                        .param("isAsc", String.valueOf(isAsc))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
-    }
 
+    }
 
     @Test
     @DisplayName("장바구니 수정 성공")
     @MockUser(role = UserRoleEnum.CUSTOMER)
     void updateBasket_success() throws Exception {
         //given
-        UUID basketId = UUID.randomUUID();
-        int quantity = 2;
+        BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
+                .basketId(UUID.randomUUID())
+                .quantity(2)
+                .build();
         BasketResponseDto response = BasketResponseDto.builder()
-                .basketId(basketId)
+                .basketId(request.getBasketId())
                 .build();
         //when
         when(basketService.updateBasket(any(), any())).thenReturn(response);
 
         //then
         String body = mapper.writeValueAsString(BasketUpdateRequestDto.builder()
-                .basketId(basketId)
-                .quantity(quantity)
+                .basketId(request.getBasketId())
+                .quantity(request.getQuantity())
                 .build());
 
         mvc.perform(put(BASE_URL + "/baskets")
@@ -247,23 +360,78 @@ class BasketControllerTest {
     }
 
     @Test
-    @DisplayName("장바구니 수정 실패 : 허용하지 않은 권한")
+    @DisplayName("장바구니 수정 실패1 : 권한이 OWNER")
     @MockUser(role = UserRoleEnum.OWNER)
-    void updateBasket_fail() throws Exception {
+    void updateBasket_fail1() throws Exception {
         //given
-        UUID basketId = UUID.randomUUID();
-        int quantity = 2;
-
+        BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
+                .basketId(UUID.randomUUID())
+                .quantity(2)
+                .build();
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(request.getBasketId())
+                .build();
         //when
-        when(basketService.updateBasket(any(), any()))
-                .thenReturn(BasketResponseDto.builder()
-                        .basketId(basketId)
-                        .build());
+        when(basketService.updateBasket(any(), any())).thenReturn(response);
 
         //then
         String body = mapper.writeValueAsString(BasketUpdateRequestDto.builder()
-                .basketId(basketId)
-                .quantity(quantity)
+                .basketId(request.getBasketId())
+                .quantity(request.getQuantity())
+                .build());
+
+        mvc.perform(put(BASE_URL + "/baskets")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("장바구니 수정 실패2 : 권한이 MANAGER")
+    @MockUser(role = UserRoleEnum.MANAGER)
+    void updateBasket_fail2() throws Exception {
+        //given
+        BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
+                .basketId(UUID.randomUUID())
+                .quantity(2)
+                .build();
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(request.getBasketId())
+                .build();
+        //when
+        when(basketService.updateBasket(any(), any())).thenReturn(response);
+
+        //then
+        String body = mapper.writeValueAsString(BasketUpdateRequestDto.builder()
+                .basketId(request.getBasketId())
+                .quantity(request.getQuantity())
+                .build());
+
+        mvc.perform(put(BASE_URL + "/baskets")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("장바구니 수정 실패3 : 권한이 MASTER")
+    @MockUser(role = UserRoleEnum.MANAGER)
+    void updateBasket_fail3() throws Exception {
+        //given
+        BasketUpdateRequestDto request = BasketUpdateRequestDto.builder()
+                .basketId(UUID.randomUUID())
+                .quantity(2)
+                .build();
+        BasketResponseDto response = BasketResponseDto.builder()
+                .basketId(request.getBasketId())
+                .build();
+        //when
+        when(basketService.updateBasket(any(), any())).thenReturn(response);
+
+        //then
+        String body = mapper.writeValueAsString(BasketUpdateRequestDto.builder()
+                .basketId(request.getBasketId())
+                .quantity(request.getQuantity())
                 .build());
 
         mvc.perform(put(BASE_URL + "/baskets")

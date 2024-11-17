@@ -11,6 +11,7 @@ public enum BasketExceptionMessage {
     BASKET_USER_NOT_EQUALS("장바구니 유저가 아닙니다."),
     BASKET_COUNT_ZERO("장바구니에 담긴 상품이 없습니다."),
     BASKET_DUPLICATED("장바구니에 담긴 상품입니다."),
-    BASKET_DIFFERENT_STORE("장바구니에 담긴 상품과 다른 지점 상품입니다.");
+    BASKET_DIFFERENT_STORE("장바구니에 담긴 상품과 다른 지점 상품입니다."),
+    BASKET_DELETE("삭제된 장바구니입니다.");
     private final String message;
 }

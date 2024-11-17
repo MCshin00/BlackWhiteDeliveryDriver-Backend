@@ -17,8 +17,6 @@ public class BasketAddRequestDto {
     @NotNull
     private UUID productId;
     @NotNull
-    private UUID storeId;
-    @NotNull
     @Min(value = 1)
     @Max(value = 99)
     private Integer quantity;
