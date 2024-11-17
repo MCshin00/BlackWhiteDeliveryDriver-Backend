@@ -20,4 +20,7 @@ public interface PayRepository extends JpaRepository<Pay, UUID> {
 
     @Query("select p from  Pay p where p.order.user = :user")
     Page<Pay> findAllByUser(@Param("user") User user, Pageable pageable);
+
+    @Query("SELECT p FROM Pay p WHERE p.order.store.storeName LIKE %:storeName%")
+    Page<Pay> findByStoreNameContaining(@Param("storeName") String storeName, Pageable pageable);
 }

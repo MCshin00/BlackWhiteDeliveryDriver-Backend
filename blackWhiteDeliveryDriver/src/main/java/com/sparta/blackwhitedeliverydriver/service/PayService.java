@@ -143,7 +143,7 @@ public class PayService {
                 .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
         checkDeletedPay(pay);
 
-        // **Pay 생성 시간이 5분 이내인지 확인**
+        //Pay 생성 시간이 5분 이내인지 확인
         checkPayWithinFiveMinutes(pay);
 
         //100% 환불로 일단 구현
@@ -214,6 +214,22 @@ public class PayService {
         }
 
         return pays.map(PayGetResponseDto::fromPay);
+    }
+
+    public Page<PayGetResponseDto> searchPaymentsByStoreName(String storeName, int page, int size, String sortBy, boolean isAsc) {
+        // 정렬 및 페이징 정보 생성
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // storeName으로 Pay 검색
+        Page<Pay> payments = payRepository.findByStoreNameContaining(storeName, pageable);
+
+        // Pay 데이터를 DTO로 변환하여 반환
+        return payments.map(PayGetResponseDto::fromPay);
     }
 
     private void checkOrderUser(Order order, User user) {

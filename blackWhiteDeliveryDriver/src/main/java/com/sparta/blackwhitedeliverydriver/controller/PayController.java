@@ -3,14 +3,13 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import com.sparta.blackwhitedeliverydriver.dto.PayApproveResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayGetResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
-import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.PayService;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,5 +90,19 @@ public class PayController {
 
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<PayGetResponseDto>> searchPayments(
+            @RequestParam("storeName") String storeName,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc) {
+
+        Page<PayGetResponseDto> response = payService.searchPaymentsByStoreName(storeName, page, size, sortBy,
+                isAsc);
+
+        return ResponseEntity.ok(response);
     }
 }
