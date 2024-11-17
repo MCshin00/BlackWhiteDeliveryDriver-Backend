@@ -9,6 +9,8 @@ import com.sparta.blackwhitedeliverydriver.service.ProductService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -31,10 +33,19 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/")
-    public ResponseEntity<?> getProducts(@RequestParam UUID storeId) {
+    public ResponseEntity<?> getProducts(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "createdDate") String sortBy,
+            @RequestParam(value = "isAsc", defaultValue = "true") boolean isAsc,
+            Sort sort,
+            @RequestParam UUID storeId
+    ) {
         // 해당 가게의 모든 음식 조회
-        List<ProductResponseDto> productResponseDtoList = productService.getProducts(storeId);
-        return ResponseEntity.status(HttpStatus.OK).body(productResponseDtoList);
+        Page<ProductResponseDto> productResponseDtoPage = productService.getProducts(
+                storeId, page - 1, size, sortBy, isAsc
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(productResponseDtoPage);
     }
 
     @Secured({"ROLE_OWNER", "ROLE_MANAGER", "ROLE_MASTER"})

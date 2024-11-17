@@ -38,18 +38,19 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
-    public List<ProductResponseDto> getProducts(UUID storeId) {
+    public Page<ProductResponseDto> getProducts(UUID storeId, int page, int size, String sortBy, boolean isAsc) {
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
-        List<Product> productList = productRepository.findAllByStore(store);
-        List<ProductResponseDto> productResponseDtoList = new ArrayList<>();
+        Page<Product> productList = productRepository.findAllByStoreAndDeletedDateIsNullAndDeletedByIsNull(store, pageable);
 
-        for (Product product : productList) {
-            productResponseDtoList.add(ProductResponseDto.from(product));
-        }
+        Page<ProductResponseDto> productResponseDtoPage = productList.map(ProductResponseDto::from);
 
-        return productResponseDtoList;
+        return productResponseDtoPage;
     }
 
     @Transactional
