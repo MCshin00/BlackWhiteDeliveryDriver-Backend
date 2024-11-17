@@ -181,7 +181,10 @@ public class StoreService {
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        UserRoleEnum userRoleEnum = user.getRole();
+        Optional<User> newUser = Optional.ofNullable(userRepository.findById(user.getUsername()).orElseThrow(
+                () -> new UsernameNotFoundException(ExceptionMessage.USER_NOT_FOUND.getMessage())
+        ));
+        UserRoleEnum userRoleEnum = newUser.get().getRole();
 
         Page<Store> storeList;
         List<StoreResponseDto> storeResponseDtoList = new ArrayList<>();
