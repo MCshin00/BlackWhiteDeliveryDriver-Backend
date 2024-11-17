@@ -77,7 +77,7 @@ public class StoreService {
 
         // 점포 조회
         Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new NullPointerException(requestDto.getStoreName() + "은(는) 존재하지 않는 점포입니다.")
+                () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
 
         // 기존 카테고리 전체 삭제
@@ -107,7 +107,7 @@ public class StoreService {
 
     public StoreResponseDto getStore(UUID storeId) {
         Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new NullPointerException("해당 점포를 찾을 수 없습니다.")
+                () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
 
         List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
@@ -132,7 +132,7 @@ public class StoreService {
         }
 
         Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new NullPointerException("존재하지않는 점포입니다.")
+                () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
 
         store.setDeletedDate(LocalDateTime.now());
@@ -143,7 +143,7 @@ public class StoreService {
 
     public String getNameOfOwner(UUID storeId) {
         User user = storeRepository.findById(storeId).map(Store::getUser).orElseThrow(
-                () -> new IllegalArgumentException(storeId + "라는 점포가 없습니다.")
+                () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
 
         return user.getUsername();
@@ -162,7 +162,7 @@ public class StoreService {
             List<String> categoryNameList = new ArrayList<>();
             for (StoreCategory storeCategory : storeCategoryList){
                 Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
-                        () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
+                        () -> new NullPointerException(CategoryExceptionMessage.CATEGORY_NOT_FOUND.getMessage())
                 ));
 
                 categoryNameList.add(category.get().getName());
@@ -193,7 +193,7 @@ public class StoreService {
                 List<String> categoryNameList = new ArrayList<>();
                 for (StoreCategory storeCategory : storeCategoryList){
                     Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
-                            () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
+                            () -> new NullPointerException(CategoryExceptionMessage.CATEGORY_ID_NOT_FOUND.getMessage())
                     ));
 
                     categoryNameList.add(category.get().getName());
