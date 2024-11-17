@@ -7,6 +7,7 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
@@ -64,16 +65,12 @@ public class BasketService {
     @Transactional
     public BasketResponseDto removeProductFromBasket(String username, UUID basketId) {
         //유저 유효성 검사
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-        checkDeletedUser(user);
+        User user = checkValidUser(username);
 
         //장바구니 유효성 검사
-        Basket basket = basketRepository.findById(basketId).orElseThrow(() ->
-                new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
-        checkDeletedBasket(basket);
+        Basket basket = checkValidBasket(basketId);
 
-        //유저와 장바구니 유저 체크
+        //장바구니 유저 유효성 검사
         checkBasketUser(user, basket);
 
         basket.softDelete(username, LocalDateTime.now());
@@ -84,9 +81,7 @@ public class BasketService {
 
     public Page<BasketGetResponseDto> getBaskets(String username, int page, int size, String sortBy, boolean isAsc) {
         // 유저 유효성 검증
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-        checkDeletedUser(user);
+        User user = checkValidUser(username);
 
         //페이징
         if (size != 10 && size != 30 && size != 50) {
@@ -96,8 +91,12 @@ public class BasketService {
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        //쿼리
-        Page<Basket> baskets = basketRepository.findAllByUserAndNotDeleted(user, pageable);
+        Page<Basket> baskets;
+        if (user.getRole().equals(UserRoleEnum.CUSTOMER)) {
+            baskets = basketRepository.findAllByUserAndNotDeleted(user, pageable);
+        } else {
+            baskets = basketRepository.findAll(pageable);
+        }
 
         return baskets.map(BasketGetResponseDto::fromBasket);
     }
@@ -105,14 +104,10 @@ public class BasketService {
     @Transactional
     public BasketResponseDto updateBasket(String username, BasketUpdateRequestDto request) {
         //유저 유효성 검사
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-        checkDeletedUser(user);
+        User user = checkValidUser(username);
 
         //장바구니 유효성 검사
-        Basket basket = basketRepository.findById(request.getBasketId()).orElseThrow(() ->
-                new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
-        checkDeletedBasket(basket);
+        Basket basket = checkValidBasket(request.getBasketId());
 
         //장바구니 유저와 api 호출 유저 체크
         checkBasketUser(user, basket);
@@ -126,9 +121,8 @@ public class BasketService {
     public Page<BasketGetResponseDto> searchBasketsByProductName(String username, String productName, int page,
                                                                  int size, String sortBy, boolean isAsc) {
         //유저 유효성 검사
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-        checkDeletedUser(user);
+        User user = checkValidUser(username);
+
         // 페이징과 정렬 정보 생성
         //페이징
         if (size != 10 && size != 30 && size != 50) {
@@ -173,16 +167,10 @@ public class BasketService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
         if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
-            throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
+            throw new NullPointerException(ExceptionMessage.USER_DELETED.getMessage());
         }
 
         return user;
-    }
-
-    private void checkDeletedUser(User user) {
-        if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
-            throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
-        }
     }
 
     private Product checkValidProduct(UUID productId) {
@@ -191,16 +179,19 @@ public class BasketService {
         if (product.getDeletedDate() != null || product.getDeletedBy() != null) {
             throw new NullPointerException("삭제된 상품입니다.");
         }
-        if(!product.getIsPublic()){
+        if (!product.getIsPublic()) {
             throw new NullPointerException("비공개 상품입니다.");
         }
         return product;
     }
 
-    private void checkDeletedBasket(Basket basket) {
+    private Basket checkValidBasket(UUID basketId) {
+        Basket basket = basketRepository.findById(basketId).orElseThrow(() ->
+                new NullPointerException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage()));
         if (basket.getDeletedDate() != null || basket.getDeletedBy() != null) {
-            throw new IllegalArgumentException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage());
+            throw new NullPointerException(BasketExceptionMessage.BASKET_DELETE.getMessage());
         }
+        return basket;
     }
 
     private void checkCreatedOrderByUser(User user) {

@@ -248,7 +248,7 @@ class BasketControllerTest {
     }
 
     @Test
-    @DisplayName("장바구니 조회 성공 : 권한이 MANAGER 경우")
+    @DisplayName("장바구니 조회 성공2 : 권한이 MANAGER 경우")
     @MockUser(role = UserRoleEnum.MANAGER)
     public void getBaskets_success2() throws Exception {
         // Given
