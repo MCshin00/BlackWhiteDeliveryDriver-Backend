@@ -13,10 +13,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StoreRepository extends JpaRepository<Store, UUID>{
 
-    Page<Store> findAllByUser(User user, Pageable pageable);
-
-    Page<Store> findAllByStoreNameContaining(String storeName, Pageable pageable);
-
     Optional<Store> findByStoreName(@NotBlank String storeName);
 
+    Page<Store> findAllByDeletedDateIsNullAndDeletedByIsNull(Pageable pageable);
+
+    Optional<Store> findByIdAndDeletedDateIsNullAndDeletedByIsNull(UUID storeId);
+
+    Page<Store> findAllByUserAndDeletedDateIsNullAndDeletedByIsNull(User user, Pageable pageable);
+
+    Page<Store> findAllByStoreNameContainingAndDeletedDateIsNullAndDeletedByIsNull(String storeName, Pageable pageable);
 }

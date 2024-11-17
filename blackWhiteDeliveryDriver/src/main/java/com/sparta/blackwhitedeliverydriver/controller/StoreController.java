@@ -33,10 +33,12 @@ public class StoreController {
 
     @GetMapping("/")
     public ResponseEntity<?> getStores(
-            @RequestParam("page") int page,
-            @RequestParam("size") int size,
-            @RequestParam("sortBy") String sortBy,
-            @RequestParam("isAsc") boolean isAsc, Sort sort ){
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "createdDate") String sortBy,
+            @RequestParam(value = "isAsc", defaultValue = "true") boolean isAsc,
+            Sort sort
+    ){
         // 전체 점포 목록 조회
         List<StoreResponseDto> storeResponseDtoPage = storeService.getStores(
                 page - 1, size, sortBy, isAsc
@@ -46,19 +48,23 @@ public class StoreController {
     }
 
     @GetMapping("/{storeId}")
-    public ResponseEntity<?> getStoreById(@PathVariable("storeId") UUID storeId){
-        StoreResponseDto storeResponseDto = storeService.getStore(storeId);
+    public ResponseEntity<?> getStoreById(
+            @RequestParam(value = "isExceptDelete", defaultValue = "true") Boolean isExceptDelete,
+            @PathVariable("storeId") UUID storeId
+    ){
+        StoreResponseDto storeResponseDto = storeService.getStore(isExceptDelete, storeId);
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDto);
     }
 
     @Secured("ROLE_OWNER")
     @GetMapping("/owner")
     public ResponseEntity<?> getStoreOfOwner(
-            @RequestParam("page") int page,
-            @RequestParam("size") int size,
-            @RequestParam("sortBy") String sortBy,
-            @RequestParam("isAsc") boolean isAsc,
-            @AuthenticationPrincipal UserDetailsImpl userDetails, Sort sort){
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "createdDate") String sortBy,
+            @RequestParam(value = "isAsc", defaultValue = "true") boolean isAsc,
+            @AuthenticationPrincipal UserDetailsImpl userDetails, Sort sort
+    ){
         // OWNER가 등록한 가게 조회
         List<StoreResponseDto> storeResponseDtoPage = storeService.getStoresOfOwner(
                 userDetails.getUser(), page - 1, size, sortBy, isAsc
@@ -69,10 +75,11 @@ public class StoreController {
     @GetMapping("/search")
     public ResponseEntity<?> searchStores(
             @RequestParam("storeName") String storeName,
-            @RequestParam("page") int page,
-            @RequestParam("size") int size,
-            @RequestParam("sortBy") String sortBy,
-            @RequestParam("isAsc") boolean isAsc){
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "createdDate") String sortBy,
+            @RequestParam(value = "isAsc", defaultValue = "true") boolean isAsc
+    ){
 
         List<StoreResponseDto> storeResponseDtoPage = storeService.searchStores(
                 storeName, page -1, size, sortBy, isAsc
