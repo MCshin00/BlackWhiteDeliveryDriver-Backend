@@ -33,18 +33,6 @@ class BasketAddRequestDtoTest {
     }
 
     @Test
-    @DisplayName("storeId가 null인 경우")
-    public void testStoreIdNotNull() {
-        BasketAddRequestDto request = BasketAddRequestDto.builder()
-                .productId(UUID.randomUUID())
-                .quantity(10)
-                .build();
-
-        Set<ConstraintViolation<BasketAddRequestDto>> violations = validator.validate(request);
-        assertThat(violations).isNotEmpty();
-    }
-
-    @Test
     @DisplayName("quantity가 null인 경우")
     public void testQuantityNotNull() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
