@@ -88,7 +88,7 @@ public class OrderController {
     @Secured({"ROLE_OWNER", "ROEL_MASTER", "ROLE_MANAGER"})
     @PutMapping
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                              @RequestBody OrderUpdateRequestDto request) {
+                                                              @RequestBody @Valid OrderUpdateRequestDto request) {
         //주문 상태 변경
         OrderResponseDto response = orderService.updateOrderStatus(userDetails.getUsername(), request);
         //200 반환

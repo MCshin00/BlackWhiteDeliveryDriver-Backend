@@ -9,6 +9,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.OrderTypeEnum;
 import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
@@ -201,8 +202,17 @@ public class OrderService {
         checkStoreOwnerEquals(order.getStore(), user);
 
         //점포 주인이 거절하면 환불
-        if(request.getStatus().equals(OrderStatusEnum.REJECTED)){
+        if (request.getStatus().equals(OrderStatusEnum.REJECTED)) {
+            checkOrderStatus(order, OrderStatusEnum.PENDING);
             payService.refundPaymentByReject(order);
+        } else if (request.getStatus().equals(OrderStatusEnum.ACCEPTED)) {
+            checkOrderStatus(order, OrderStatusEnum.PENDING);
+        } else if (request.getStatus().equals(OrderStatusEnum.COMPLETED)) {
+            if (order.getType().equals(OrderTypeEnum.ONLINE)) {
+                checkOrderStatus(order, OrderStatusEnum.ACCEPTED);
+            }
+        } else {
+            throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_UPDATE.getMessage());
         }
 
         order.updateStatus(request.getStatus());
@@ -295,6 +305,12 @@ public class OrderService {
     private void checkDeletedOrder(Order order) {
         if (order.getDeletedDate() != null || order.getDeletedBy() != null) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage());
+        }
+    }
+
+    private void checkOrderStatus(Order order, OrderStatusEnum status) {
+        if (!order.getStatus().equals(status)) {
+            throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_UPDATE.getMessage());
         }
     }
 }
