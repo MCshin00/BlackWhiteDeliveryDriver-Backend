@@ -46,11 +46,12 @@ class OrderServiceTest {
     OrderProductRepository orderProductRepository = mock(OrderProductRepository.class);
     UserRepository userRepository = mock(UserRepository.class);
     StoreRepository storeRepository = mock(StoreRepository.class);
+    PayService payService = mock(PayService.class);
 
     @BeforeEach
     public void setUp() {
         orderService = new OrderService(basketRepository, orderRepository, orderProductRepository, userRepository,
-                storeRepository);
+                storeRepository, payService);
     }
 
     @Test

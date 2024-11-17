@@ -45,6 +45,8 @@ public class OrderService {
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
 
+    private final PayService payService;
+
     @Transactional
     public OrderResponseDto createOrder(String username, OrderAddRequestDto request) {
         //유저 유효성 검사
@@ -197,6 +199,11 @@ public class OrderService {
 
         //주문의 점포 주인과 유저 체크
         checkStoreOwnerEquals(order.getStore(), user);
+
+        //점포 주인이 거절하면 환불
+        if(request.getStatus().equals(OrderStatusEnum.REJECTED)){
+            payService.refundPaymentByReject(order);
+        }
 
         order.updateStatus(request.getStatus());
         return new OrderResponseDto(order.getId());

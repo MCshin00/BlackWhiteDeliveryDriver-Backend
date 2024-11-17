@@ -167,6 +167,35 @@ public class PayService {
         return new PayRefundResponseDto("주문을 취소했습니다.");
     }
 
+    @Transactional
+    public void refundPaymentByReject(Order order) {
+        //주문 상태 체크
+        checkOrderPendingStatus(order);
+
+        //pay 유효성
+        Pay pay = payRepository.findByOrder(order)
+                .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
+        checkDeletedPay(pay);
+
+        //100% 환불로 일단 구현
+        int cancelAmount = pay.getPayAmount();
+
+        //카카오 페이 서버로 보낼 요청 생성 및 api 호출
+        Map<String, String> parameters = payUtil.getRefundParameters(pay, cancelAmount);
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, payUtil.getHeaders());
+        RestTemplate restTemplate = new RestTemplate();
+        PayCancelResponseDto cancelResponse = restTemplate.postForObject(PAY_URI + "/payment/cancel", requestEntity,
+                PayCancelResponseDto.class);
+
+        //주문 상태 업데이트
+        order.updateStatus(OrderStatusEnum.CANCEL);
+
+        //pay 업데이트
+        assert cancelResponse != null;
+        pay.updateByRefund(PayStatusEnum.REFUND, cancelResponse.getCanceled_amount().getTotal(),
+                cancelResponse.getCanceled_at());
+    }
+
     public PayGetDetailResponseDto getPayDetail(String username, UUID payId) {
         //유저 유효성
         User user = userRepository.findById(username)
