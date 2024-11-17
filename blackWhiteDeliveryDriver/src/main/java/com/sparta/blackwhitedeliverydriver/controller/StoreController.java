@@ -3,6 +3,7 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import com.sparta.blackwhitedeliverydriver.dto.StoreIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
+import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.Category;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
@@ -61,6 +62,20 @@ public class StoreController {
         // OWNER가 등록한 가게 조회
         List<StoreResponseDto> storeResponseDtoPage = storeService.getStoresOfOwner(
                 userDetails.getUser(), page - 1, size, sortBy, isAsc
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoPage);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchStores(
+            @RequestParam("storeName") String storeName,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc){
+
+        List<StoreResponseDto> storeResponseDtoPage = storeService.searchStores(
+                storeName, page -1, size, sortBy, isAsc
         );
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoPage);
     }

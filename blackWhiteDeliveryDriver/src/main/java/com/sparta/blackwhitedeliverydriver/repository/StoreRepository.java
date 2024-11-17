@@ -14,4 +14,6 @@ public interface StoreRepository extends JpaRepository<Store, UUID>{
     Optional<Store> findByStoreNameAndPhoneNumber(String storeName, String phoneNumber);
 
     Page<Store> findAllByUser(User user, Pageable pageable);
+
+    Page<Store> findAllByStoreNameContaining(String storeName, Pageable pageable);
 }

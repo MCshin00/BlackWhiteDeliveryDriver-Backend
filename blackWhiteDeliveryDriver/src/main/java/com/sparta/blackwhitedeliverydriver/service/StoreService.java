@@ -176,4 +176,31 @@ public class StoreService {
 
         return storeResponseDtoList;
     }
+
+    public List<StoreResponseDto> searchStores(String storeName, int page, int size, String sortBy, boolean isAsc) {
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Store> storeList = storeRepository.findAllByStoreNameContaining(storeName, pageable);
+        List<StoreResponseDto> storeResponseDtoList = new ArrayList<>();
+
+        for(Store store : storeList.getContent()){
+            List<StoreCategory> storeCategoryList = storeCategoryRepository.findAllByStoreStoreId(store.getStoreId());
+            List<String> categoryNameList = new ArrayList<>();
+            for (StoreCategory storeCategory : storeCategoryList){
+                Optional<Category> category = Optional.ofNullable(categoryRepository.findById(storeCategory.getCategory().getCategoryId()).orElseThrow(
+                        () -> new NullPointerException(storeCategory.getCategory().getCategoryId() + "라는 카테고리 ID는 없습니다.")
+                ));
+
+                categoryNameList.add(category.get().getName());
+            }
+            String categoryNames = categoryNameList.stream().collect(Collectors.joining(", "));
+
+            StoreResponseDto storeResponseDto = StoreResponseDto.from(store, categoryNames);
+            storeResponseDtoList.add(storeResponseDto);
+        }
+
+        return storeResponseDtoList;
+    }
 }
