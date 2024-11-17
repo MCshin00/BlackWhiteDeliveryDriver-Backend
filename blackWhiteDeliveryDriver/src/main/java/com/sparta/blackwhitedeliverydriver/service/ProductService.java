@@ -144,6 +144,7 @@ public class ProductService {
                 throw new IllegalArgumentException(StoreExceptionMessage.FORBIDDEN_ACCESS.getMessage());
             }
         }
+        else { throw new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()); }
 
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new NullPointerException(ProductExceptionMessage.PRODUCT_NOT_FOUND.getMessage())
