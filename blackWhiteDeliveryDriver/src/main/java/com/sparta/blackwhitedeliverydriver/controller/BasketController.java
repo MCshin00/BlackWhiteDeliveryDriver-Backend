@@ -43,7 +43,7 @@ public class BasketController {
     }
 
     @Secured({"ROLE_CUSTOMER"})
-    @DeleteMapping("/{basketId}")//테스트 완료
+    @DeleteMapping("/{basketId}")
     public ResponseEntity<BasketResponseDto> removeProductFromBasket(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable UUID basketId) {
@@ -51,7 +51,7 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Secured({"ROLE_CUSTOMER"})
+    @Secured({"ROLE_CUSTOMER", "ROLE_MANAGER", "ROLE_MASTER"})
     @GetMapping
     public ResponseEntity<Page<BasketGetResponseDto>> getBaskets(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                                  @RequestParam("page") int page,
@@ -59,7 +59,7 @@ public class BasketController {
                                                                  @RequestParam("sortBy") String sortBy,
                                                                  @RequestParam("isAsc") boolean isAsc) {
         //장바구니 리스트 조회
-        Page<BasketGetResponseDto> responseDtoList = basketService.getBaskets(userDetails.getUsername(), page-1, size,
+        Page<BasketGetResponseDto> responseDtoList = basketService.getBaskets(userDetails.getUsername(), page - 1, size,
                 sortBy, isAsc);
         //200 응답
         return ResponseEntity.status(HttpStatus.OK).body(responseDtoList);
@@ -86,7 +86,7 @@ public class BasketController {
             @RequestParam("isAsc") boolean isAsc) {
 
         Page<BasketGetResponseDto> baskets = basketService.searchBasketsByProductName(userDetails.getUsername(),
-                productName, page-1, size, sortBy, isAsc);
+                productName, page - 1, size, sortBy, isAsc);
         return ResponseEntity.ok(baskets);
     }
 }

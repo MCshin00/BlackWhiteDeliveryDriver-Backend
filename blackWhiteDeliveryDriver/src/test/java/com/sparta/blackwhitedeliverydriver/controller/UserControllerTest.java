@@ -185,7 +185,7 @@ public class UserControllerTest {
                 .password("password")
                 .email("test@email.com")
                 .phoneNumber("01012345678")
-                .role(UserRoleEnum.MANAGER)
+//                .role(UserRoleEnum.MANAGER)
                 .imgUrl(null)
                 .build();
 
@@ -211,7 +211,7 @@ public class UserControllerTest {
                 .password("password")
                 .email("test@email.com")
                 .phoneNumber("01012345678")
-                .role(UserRoleEnum.MANAGER)
+//                .role(UserRoleEnum.MANAGER)
                 .imgUrl(null)
                 .build();
 
@@ -237,7 +237,7 @@ public class UserControllerTest {
                 .password("password")
                 .email("test@email.com")
                 .phoneNumber("01012345678")
-                .role(UserRoleEnum.MANAGER)
+//                .role(UserRoleEnum.MANAGER)
                 .imgUrl(null)
                 .build();
 
