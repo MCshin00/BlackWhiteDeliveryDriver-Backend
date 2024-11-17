@@ -485,7 +485,7 @@ class OrderServiceTest {
 
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         given(orderRepository.findById(any())).willReturn(Optional.ofNullable(order));
-        when(orderProductRepository.findAllByOrder(any())).thenReturn(List.of(orderProduct));
+        when(orderProductRepository.findAllByOrderAndNotDeleted(any())).thenReturn(List.of(orderProduct));
         when(basketRepository.save(any())).thenReturn(Optional.ofNullable(basket));
         doNothing().when(orderProductRepository).deleteAll(any());
         doNothing().when(orderRepository).delete(any());

@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -84,5 +85,10 @@ public class Order extends BaseEntity {
 
     public void updateTid(String tid) {
         this.tid = tid;
+    }
+
+    public void softDelete(String username, LocalDateTime deletedAt) {
+        this.setDeletedBy(username);
+        this.setDeletedDate(deletedAt);
     }
 }

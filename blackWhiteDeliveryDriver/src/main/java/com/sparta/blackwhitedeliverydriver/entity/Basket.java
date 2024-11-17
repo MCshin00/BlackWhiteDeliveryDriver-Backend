@@ -65,7 +65,7 @@ public class Basket extends BaseEntity {
         this.quantity = quantity;
     }
 
-    public void updateDeleteInfo(String username, LocalDateTime deletedAt) {
+    public void softDelete(String username, LocalDateTime deletedAt) {
         this.setDeletedBy(username);
         this.setDeletedDate(deletedAt);
     }
