@@ -54,7 +54,7 @@ class OrderControllerTest {
         OrderResponseDto response = new OrderResponseDto(orderId);
 
         //when
-        when(orderService.createOrder(any())).thenReturn(response);
+        when(orderService.createOrder(any(), any())).thenReturn(response);
 
         //then
         mvc.perform(post(BASE_URL + "/orders"))
@@ -72,7 +72,7 @@ class OrderControllerTest {
         OrderResponseDto response = new OrderResponseDto(orderId);
 
         //when
-        when(orderService.createOrder(any())).thenReturn(response);
+        when(orderService.createOrder(any(), any())).thenReturn(response);
 
         //then
         mvc.perform(post(BASE_URL + "/orders"))

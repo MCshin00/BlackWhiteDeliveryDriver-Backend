@@ -53,12 +53,16 @@ public class Order extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private OrderStatusEnum status;
 
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private OrderTypeEnum type;
+
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Review review;
 
     private String tid;
 
-    public static Order ofUserAndStore(User user, Store store) {
+    public static Order ofUserAndStore(User user, Store store, OrderTypeEnum type) {
         return Order.builder()
                 .user(user)
                 .store(store)
@@ -66,6 +70,7 @@ public class Order extends BaseEntity {
                 .discountAmount(0)
                 .discountRate(0)
                 .status(OrderStatusEnum.CREATE)
+                .type(type)
                 .build();
     }
 

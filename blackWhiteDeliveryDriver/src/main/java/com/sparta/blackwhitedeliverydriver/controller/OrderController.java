@@ -1,11 +1,13 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
+import com.sparta.blackwhitedeliverydriver.dto.OrderAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.OrderService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +33,10 @@ public class OrderController {
 
     @Secured({"ROLE_CUSTOMER"})
     @PostMapping
-    public ResponseEntity<OrderResponseDto> createOrder(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<OrderResponseDto> createOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                        @RequestBody @Valid OrderAddRequestDto request) {
         //주문서 생성
-        OrderResponseDto response = orderService.createOrder(userDetails.getUsername());
+        OrderResponseDto response = orderService.createOrder(userDetails.getUsername(), request);
         //201 반환
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

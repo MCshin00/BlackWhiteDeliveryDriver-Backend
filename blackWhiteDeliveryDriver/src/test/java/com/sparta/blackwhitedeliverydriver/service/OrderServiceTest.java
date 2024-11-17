@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.sparta.blackwhitedeliverydriver.dto.OrderAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
@@ -16,6 +17,7 @@ import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.OrderTypeEnum;
 import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
@@ -94,6 +96,7 @@ class OrderServiceTest {
                 .quantity(2)
                 .price(product.getPrice())
                 .build();
+        OrderAddRequestDto request = new OrderAddRequestDto(OrderTypeEnum.ONLINE);
 
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         given(basketRepository.findAllByUser(any())).willReturn(List.of(basket));
@@ -102,7 +105,7 @@ class OrderServiceTest {
         doNothing().when(basketRepository).deleteAll(any());
 
         //when
-        OrderResponseDto response = orderService.createOrder(username);
+        OrderResponseDto response = orderService.createOrder(username, request);
 
         //then
         Assertions.assertEquals(10000, order.getFinalPay());
@@ -114,10 +117,12 @@ class OrderServiceTest {
     void createOrder_fail1() {
         //given
         String username = "user1";
+        OrderAddRequestDto request = new OrderAddRequestDto(OrderTypeEnum.ONLINE);
+
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
         //when & then
-        assertThrows(NullPointerException.class, () -> orderService.createOrder(username));
+        assertThrows(NullPointerException.class, () -> orderService.createOrder(username, request));
     }
 
     @Test
@@ -130,12 +135,13 @@ class OrderServiceTest {
                 .role(UserRoleEnum.CUSTOMER)
                 .build();
         List<Basket> baskets = new ArrayList<>();
+        OrderAddRequestDto request = new OrderAddRequestDto(OrderTypeEnum.ONLINE);
 
         given(userRepository.findById(any())).willReturn(Optional.ofNullable(user));
         when(basketRepository.findAllById(any())).thenReturn(baskets);
 
         //when & then
-        assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(username));
+        assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(username, request));
     }
 
     @Test

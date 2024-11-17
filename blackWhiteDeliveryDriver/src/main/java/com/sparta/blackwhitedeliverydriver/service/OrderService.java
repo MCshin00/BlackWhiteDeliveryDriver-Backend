@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.OrderAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
@@ -39,7 +40,7 @@ public class OrderService {
     private final UserRepository userRepository;
 
     @Transactional
-    public OrderResponseDto createOrder(String username) {
+    public OrderResponseDto createOrder(String username, OrderAddRequestDto request) {
         //유저 유효성 검사
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
@@ -52,7 +53,7 @@ public class OrderService {
 
         //order 엔티티 생성 및 저장
         Store store = baskets.get(0).getStore();
-        Order order = Order.ofUserAndStore(user, store);
+        Order order = Order.ofUserAndStore(user, store, request.getType());
         order = orderRepository.save(order);
 
         //연관관계 테이블에 장바구니 품목 저장
