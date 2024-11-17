@@ -1,21 +1,26 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
 import com.sparta.blackwhitedeliverydriver.dto.CreateProductRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.ProductIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.ProductRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.ProductResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
+import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
+import com.sparta.blackwhitedeliverydriver.exception.ProductExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
+import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
-import jakarta.validation.constraints.Null;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +31,11 @@ public class ProductService {
 
     private final StoreRepository storeRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     public List<ProductResponseDto> getProducts(UUID storeId) {
         Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 점포입니다.")
+                () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
         List<Product> productList = productRepository.findAllByStore(store);
         List<ProductResponseDto> productResponseDtoList = new ArrayList<>();
@@ -59,7 +65,7 @@ public class ProductService {
 
         // 음식 등록
         Store store = storeRepository.findById(requestDto.getStoreId()).orElseThrow(
-                () -> new NullPointerException("해당 점포는 존재하지 않습니다.")
+                () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
         );
         Product product = Product.from(requestDto, store);
         productRepository.save(product);
@@ -78,9 +84,8 @@ public class ProductService {
 
         // 음식 조회
         Product product = productRepository.findById(productId).orElseThrow(
-                () -> new NullPointerException("존재하지 않는 음식 정보입니다.")
+                () -> new NullPointerException(ProductExceptionMessage.PRODUCT_NOT_FOUND.getMessage())
         );
-
         product.update(requestDto, userDetails);
         ProductIdResponseDto productIdResponseDto = new ProductIdResponseDto(product.getProductId());
 
@@ -128,7 +133,7 @@ public class ProductService {
         }
 
         Product product = productRepository.findById(productId).orElseThrow(
-                () -> new NullPointerException("존재하지 않는 음식입니다.")
+                () -> new NullPointerException(ProductExceptionMessage.PRODUCT_NOT_FOUND.getMessage())
         );
 
         product.setDeletedDate(LocalDateTime.now());
@@ -138,4 +143,5 @@ public class ProductService {
 
         return productIdResponseDto;
     }
+
 }

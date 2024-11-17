@@ -4,15 +4,14 @@ import com.sparta.blackwhitedeliverydriver.dto.CreateProductRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.ProductIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.ProductRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.ProductResponseDto;
-import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
-import com.sparta.blackwhitedeliverydriver.service.ProductService;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
-import com.sparta.blackwhitedeliverydriver.service.StoreService;
+import com.sparta.blackwhitedeliverydriver.service.ProductService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("api/v1/products")
 public class ProductController {
 
-    private final StoreService storeService;
     private final ProductService productService;
 
     @GetMapping("/")
@@ -50,12 +48,6 @@ public class ProductController {
     @Secured({"ROLE_OWNER", "ROLE_MANAGER", "ROLE_MASTER"})
     @PutMapping("/{productId}")
     public ResponseEntity<?> updateProduct(@PathVariable UUID productId, @RequestBody ProductRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails){
-        // OWNER의 가게인지 확인 -> 본인 가게만 수정
-        UUID storeId = productService.findStoreIdByProductId(productId);
-        if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER) || !isStoreOfOwner(storeId, userDetails)){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 점포만 수정이 가능합니다.");
-        }
-
         // 음식 수정
         ProductIdResponseDto productIdResponseDto = productService.updateProduct(productId, requestDto, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(productIdResponseDto);
@@ -68,11 +60,5 @@ public class ProductController {
         ProductIdResponseDto productIdResponseDto = productService.deleteProduct(productId, userDetails);
 
         return ResponseEntity.status(HttpStatus.OK).body(productIdResponseDto);
-    }
-
-    private boolean isStoreOfOwner(UUID storeId, UserDetailsImpl userDetails) {
-        String ownerNameOfStore = storeService.getNameOfOwner(storeId);
-        if(ownerNameOfStore.matches(userDetails.getUser().getUsername())){ return true; }
-        return false;
     }
 }
