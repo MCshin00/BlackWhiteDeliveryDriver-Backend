@@ -36,4 +36,12 @@ public class CategoryController {
 
         return ResponseEntity.status(HttpStatus.OK).body(categoryResponseDtos);
     }
+
+    @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
+    @PostMapping("/")
+    public ResponseEntity<CategoryIdResponseDto> createCategory(@RequestBody CategoryRequestDto requestDto) {
+        CategoryIdResponseDto responseDto = categoryService.createCategory(requestDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
 }

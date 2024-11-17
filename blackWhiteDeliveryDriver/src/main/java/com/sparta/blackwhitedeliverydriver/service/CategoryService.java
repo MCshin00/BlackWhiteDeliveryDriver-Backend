@@ -60,4 +60,21 @@ public class CategoryService {
 
         return categoryPage.map(CategoryResponseDto::from);
     }
+
+    @Transactional
+    public CategoryIdResponseDto createCategory(CategoryRequestDto requestDto) {
+        checkCategoryName(requestDto.getName());
+
+        Category category = Category.from(requestDto.getName());
+        categoryRepository.save(category);
+
+        return new CategoryIdResponseDto(category.getCategoryId());
+    }
+
+    private void checkCategoryName(String name) {
+        Optional<Category> categoryOptional = categoryRepository.findByName(name);
+        if (categoryOptional.isPresent()) {
+            throw new IllegalArgumentException(CategoryExceptionMessage.CATEGORY_DUPLICATED.getMessage());
+        }
+    }
 }
