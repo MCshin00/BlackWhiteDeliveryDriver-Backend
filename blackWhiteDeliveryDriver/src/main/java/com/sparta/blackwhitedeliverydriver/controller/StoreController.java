@@ -92,9 +92,7 @@ public class StoreController {
         List<Category> categoryList = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
 
         // 점포 등록
-        UUID storeId = storeService.createStore(requestDto, categoryList, userDetails.getUser());
-
-        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
+        StoreIdResponseDto storeIdResponseDto = storeService.createStore(requestDto, userDetails.getUser());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }
@@ -110,7 +108,7 @@ public class StoreController {
         // 카테고리 등록
         List<Category> newCategoryList = categoryService.getOrCreateCategory(requestDto.getCategory(), userDetails.getUser());
         // 점포 수정
-        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeService.updateStore(storeId, requestDto, newCategoryList, userDetails));
+        StoreIdResponseDto storeIdResponseDto = storeService.updateStore(storeId, requestDto, userDetails);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }
@@ -123,9 +121,7 @@ public class StoreController {
         }
 
         // 점포 삭제
-        storeService.deleteStore(storeId, userDetails);
-
-        StoreIdResponseDto storeIdResponseDto = new StoreIdResponseDto(storeId);
+        StoreIdResponseDto storeIdResponseDto = storeService.deleteStore(storeId, userDetails);;
 
         return ResponseEntity.status(HttpStatus.OK).body(storeIdResponseDto);
     }
