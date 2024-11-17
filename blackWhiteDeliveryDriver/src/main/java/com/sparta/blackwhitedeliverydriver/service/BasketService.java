@@ -6,16 +6,13 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Basket;
 import com.sparta.blackwhitedeliverydriver.entity.Product;
-import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
-import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
-import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,24 +32,19 @@ public class BasketService {
 
     private final BasketRepository basketRepository;
     private final UserRepository userRepository;
-    private final StoreRepository storeRepository;
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
 
     @Transactional
     public BasketResponseDto addProductToBasket(String username, BasketAddRequestDto request) {
         // 유저가 유효성 체크
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-        checkDeletedUser(user);
+        User user = checkValidUser(username);
 
         //활성화 주문 체크
-        checkCreatedOrderByUser(username);
+        checkCreatedOrderByUser(user);
 
         // 상품이 유효성
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new NullPointerException("상품을 찾을 수 없습니다."));
-        checkDeletedProduct(product);
+        Product product = checkValidProduct(request.getProductId());
 
         // 담은 상품이 중복된 상품인지 체크
         List<Basket> baskets = basketRepository.findAllByUserAndNotDeleted(user);
@@ -147,7 +139,8 @@ public class BasketService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // 데이터 조회 및 변환
-        Page<Basket> baskets = basketRepository.findByProductNameContainingAndUserAndNotDeleted(productName, user, pageable);
+        Page<Basket> baskets = basketRepository.findByProductNameContainingAndUserAndNotDeleted(productName, user,
+                pageable);
         return baskets.map(BasketGetResponseDto::fromBasket);
     }
 
@@ -175,22 +168,33 @@ public class BasketService {
         }
     }
 
+    public User checkValidUser(String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
+            throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
+        }
+
+        return user;
+    }
+
     private void checkDeletedUser(User user) {
         if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
             throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
         }
     }
 
-    private void checkDeletedStore(Store store) {
-        if (store.getDeletedDate() != null || store.getDeletedBy() != null) {
-            throw new IllegalArgumentException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage());
-        }
-    }
-
-    private void checkDeletedProduct(Product product) {
+    private Product checkValidProduct(UUID productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NullPointerException("상품을 찾을 수 없습니다."));
         if (product.getDeletedDate() != null || product.getDeletedBy() != null) {
-            throw new IllegalArgumentException("상품을 찾을 수 없습니다.");
+            throw new NullPointerException("삭제된 상품입니다.");
         }
+        if(!product.getIsPublic()){
+            throw new NullPointerException("비공개 상품입니다.");
+        }
+        return product;
     }
 
     private void checkDeletedBasket(Basket basket) {
@@ -198,8 +202,9 @@ public class BasketService {
             throw new IllegalArgumentException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage());
         }
     }
-    private void checkCreatedOrderByUser(String username) {
-        orderRepository.findActiveOrderByUser(username)
+
+    private void checkCreatedOrderByUser(User user) {
+        orderRepository.findActiveOrderByUser(user)
                 .ifPresent(order -> {
                     throw new IllegalArgumentException(OrderExceptionMessage.ORDER_ALREADY_EXIST.getMessage());
                 });
