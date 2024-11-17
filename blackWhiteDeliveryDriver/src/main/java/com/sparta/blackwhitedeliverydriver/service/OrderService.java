@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,21 +100,29 @@ public class OrderService {
         return OrderGetDetailResponseDto.of(order, orderProducts);
     }
 
-    public List<OrderGetResponseDto> getOrders(String username) {
+    public Page<OrderGetResponseDto> getOrders(String username, int page, int size, String sortBy, boolean isAsc) {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
 
+        //페이징
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
         //주문 조회
         UserRoleEnum role = user.getRole();
-        List<Order> orders;
+        Page<Order> orders;
         if (role.equals(UserRoleEnum.CUSTOMER)) {
-            orders = orderRepository.findAllByUser(user);
+            orders = orderRepository.findAllByUserAndNotDeleted(user, pageable);
         } else {
-            orders = orderRepository.findAll();
+            orders = orderRepository.findAll(pageable);
         }
 
-        return orders.stream().map(OrderGetResponseDto::fromOrder).collect(Collectors.toList());
+        return orders.map(OrderGetResponseDto::fromOrder);
     }
 
     @Transactional

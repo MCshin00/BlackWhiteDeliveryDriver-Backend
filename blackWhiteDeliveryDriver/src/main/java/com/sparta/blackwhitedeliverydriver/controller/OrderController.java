@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -54,9 +56,15 @@ public class OrderController {
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
     @GetMapping
-    public ResponseEntity<List<OrderGetResponseDto>> getOrders(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<Page<OrderGetResponseDto>> getOrders(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc) {
         //주문 목록 조회
-        List<OrderGetResponseDto> responseList = orderService.getOrders(userDetails.getUsername());
+        Page<OrderGetResponseDto> responseList = orderService.getOrders(userDetails.getUsername(), page - 1, size,
+                sortBy, isAsc);
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseList);
     }

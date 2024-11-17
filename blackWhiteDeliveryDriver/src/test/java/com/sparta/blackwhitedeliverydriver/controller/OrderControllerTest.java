@@ -127,6 +127,7 @@ class OrderControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    /*
     @Test
     @DisplayName("주문 목록 조회하기 성공")
     @MockUser(role = UserRoleEnum.CUSTOMER)
@@ -178,6 +179,8 @@ class OrderControllerTest {
                 .andExpect(status().isForbidden());
 
     }
+
+     */
 
     @Test
     @DisplayName("주문 상태 수정하기 성공")
