@@ -53,14 +53,17 @@ public class BasketController {
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MANAGER", "ROLE_MASTER"})
     @GetMapping
-    public ResponseEntity<Page<BasketGetResponseDto>> getBaskets(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                                 @RequestParam("page") int page,
-                                                                 @RequestParam("size") int size,
-                                                                 @RequestParam("sortBy") String sortBy,
-                                                                 @RequestParam("isAsc") boolean isAsc) {
+    public ResponseEntity<Page<BasketGetResponseDto>> getBaskets(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "createdDate") String sortBy,
+            @RequestParam(value = "isAsc", defaultValue = "true") boolean isAsc) {
+
         //장바구니 리스트 조회
         Page<BasketGetResponseDto> responseDtoList = basketService.getBaskets(userDetails.getUsername(), page - 1, size,
                 sortBy, isAsc);
+
         //200 응답
         return ResponseEntity.status(HttpStatus.OK).body(responseDtoList);
     }
@@ -80,10 +83,10 @@ public class BasketController {
     public ResponseEntity<Page<BasketGetResponseDto>> searchBaskets(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam("productName") String productName,
-            @RequestParam("page") int page,
-            @RequestParam("size") int size,
-            @RequestParam("sortBy") String sortBy,
-            @RequestParam("isAsc") boolean isAsc) {
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "createdDate") String sortBy,
+            @RequestParam(value = "isAsc", defaultValue = "true") boolean isAsc) {
 
         Page<BasketGetResponseDto> baskets = basketService.searchBasketsByProductName(userDetails.getUsername(),
                 productName, page - 1, size, sortBy, isAsc);
