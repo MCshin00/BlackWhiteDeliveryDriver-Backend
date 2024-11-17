@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.dto;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,5 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PayRefundRequestDto {
+    @NotNull
     private UUID orderId;
 }

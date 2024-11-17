@@ -9,6 +9,7 @@ import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.PayService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +37,7 @@ public class PayController {
     @Secured({"ROLE_CUSTOMER"})
     @PostMapping("/ready")
     public ResponseEntity<PayReadyResponseDto> readyToPay(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                          @RequestBody PayRequestDto request) {
-        log.info("user : {}", userDetails.getUser().getUsername());
+                                                          @RequestBody @Valid PayRequestDto request) {
         //결제 준비
         PayReadyResponseDto response = payService.readyToPay(userDetails.getUsername(), request);
         //201 반환
@@ -49,15 +49,16 @@ public class PayController {
     public ResponseEntity<PayApproveResponseDto> afterPay(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                           @RequestParam("pg_token") String pgToken,
                                                           @RequestParam("tid") String tid) {
-        log.info("{}", tid);
+        //결제 승인
         PayApproveResponseDto response = payService.approvePay(userDetails.getUsername(), pgToken, tid);
+        //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Secured({"ROLE_CUSTOMER"})
     @PostMapping("/refund")
     public ResponseEntity<PayRefundResponseDto> refundPay(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                          @RequestBody PayRefundRequestDto request) {
+                                                          @RequestBody @Valid PayRefundRequestDto request) {
         //환불
         PayRefundResponseDto response = payService.refundPayment(userDetails.getUsername(), request);
 

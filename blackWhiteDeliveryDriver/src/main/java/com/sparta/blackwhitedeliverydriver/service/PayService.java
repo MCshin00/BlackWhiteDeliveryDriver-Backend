@@ -13,11 +13,13 @@ import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
 import com.sparta.blackwhitedeliverydriver.entity.Pay;
 import com.sparta.blackwhitedeliverydriver.entity.PayStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.PayExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.PayRepository;
@@ -54,10 +56,12 @@ public class PayService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
 
         //주문 유효성
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        checkDeletedOrder(order);
 
         //유저와 주문 유저 비교
         checkOrderUser(order, user);
@@ -86,21 +90,19 @@ public class PayService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
 
         //주문 유효성
         Order order = orderRepository.findByTid(tid)
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        checkDeletedOrder(order);
 
         Map<String, String> parameters = payUtil.getApprovePayParameters(tid, pgToken, order);
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, payUtil.getHeaders());
 
-        log.info("auth:{}", requestEntity.getHeaders().get("Authorization"));
-
         RestTemplate restTemplate = new RestTemplate();
         PayApproveResponseDto approveResponse = restTemplate.postForObject(
                 PAY_URI + "/payment/approve", requestEntity, PayApproveResponseDto.class);
-
-        log.info("response:{}", approveResponse);
 
         assert approveResponse != null;
         Pay pay = Pay.of(order, approveResponse);
@@ -117,10 +119,12 @@ public class PayService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_PUBLIC.getMessage()));
+        checkDeletedUser(user);
 
         //주문 유효성
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        checkDeletedOrder(order);
 
         //유저와 주문 유저의 유효성
         checkOrderUser(order, user);
@@ -128,6 +132,7 @@ public class PayService {
         //pay 유효성
         Pay pay = payRepository.findByOrder(order)
                 .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
+        checkDeletedPay(pay);
 
         //100% 환불로 일단 구현
         int cancelAmount = pay.getPayAmount();
@@ -154,14 +159,16 @@ public class PayService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
 
         //PAY 유효성
         Pay pay = payRepository.findById(payId)
                 .orElseThrow(() -> new NullPointerException(PayExceptionMessage.PAY_NOT_FOUND.getMessage()));
+        checkDeletedPay(pay);
 
         //Order와 유저 유효성
         UserRoleEnum role = user.getRole();
-        if(role.equals(UserRoleEnum.CUSTOMER)){
+        if (role.equals(UserRoleEnum.CUSTOMER)) {
             checkOrderUser(pay.getOrder(), user);
         }
 
@@ -200,5 +207,29 @@ public class PayService {
         }
 
         return pays.stream().map(PayGetResponseDto::fromPay).collect(Collectors.toList());
+    }
+
+    private void checkDeletedUser(User user) {
+        if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
+            throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
+        }
+    }
+
+    private void checkDeletedStore(Store store) {
+        if (store.getDeletedDate() != null || store.getDeletedBy() != null) {
+            throw new IllegalArgumentException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage());
+        }
+    }
+
+    private void checkDeletedOrder(Order order) {
+        if (order.getDeletedDate() != null || order.getDeletedBy() != null) {
+            throw new IllegalArgumentException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage());
+        }
+    }
+
+    private void checkDeletedPay(Pay pay) {
+        if (pay.getDeletedDate() != null || pay.getDeletedBy() != null) {
+            throw new IllegalArgumentException(PayExceptionMessage.PAY_NOT_FOUND.getMessage());
+        }
     }
 }
