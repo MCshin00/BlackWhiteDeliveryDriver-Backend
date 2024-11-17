@@ -1,6 +1,7 @@
 package com.sparta.blackwhitedeliverydriver.entity;
 
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
+import com.sparta.blackwhitedeliverydriver.dto.StoreByMasterRequestDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -82,14 +83,14 @@ public class Store extends BaseEntity {
                 .streetNumber(requestDto.getStreetNumber())
                 .detailAddr(requestDto.getDetailAddr())
                 .storeIntro(requestDto.getStoreIntro())
-                .isPublic(true)
+                .isPublic(false)
                 .rating(0)
                 .reviewCnt(0)
                 .user(user)
                 .build();
     }
 
-    public void update(StoreRequestDto requestDto, UserDetailsImpl userDetails) {
+    public void update(StoreRequestDto requestDto) {
         this.storeName = requestDto.getStoreName();
         this.phoneNumber = requestDto.getPhoneNumber();
         this.openTime = requestDto.getOpenTime();
@@ -111,5 +112,25 @@ public class Store extends BaseEntity {
 
     public void updateRating(int previousRating, int updatedRating) {
         this.rating = rating - previousRating + updatedRating;
+    }
+
+    public void updateByMaster(StoreByMasterRequestDto requestDto, UserDetailsImpl userDetails) {
+        this.storeName = requestDto.getStoreName();
+        this.phoneNumber = requestDto.getPhoneNumber();
+        this.openTime = requestDto.getOpenTime();
+        this.closeTime = requestDto.getCloseTime();
+        this.imgUrl = requestDto.getImgUrl();
+        this.zipNum = requestDto.getZipNum();
+        this.city = requestDto.getCity();
+        this.district = requestDto.getDistrict();
+        this.streetName = requestDto.getStreetName();
+        this.streetNumber = requestDto.getStreetNumber();
+        this.detailAddr = requestDto.getDetailAddr();
+        this.storeIntro = requestDto.getStoreIntro();
+    }
+
+    public void updatePublic(Boolean isPublic) {
+        if(isPublic) {this.isPublic = false; }
+        else {this.isPublic = true; }
     }
 }

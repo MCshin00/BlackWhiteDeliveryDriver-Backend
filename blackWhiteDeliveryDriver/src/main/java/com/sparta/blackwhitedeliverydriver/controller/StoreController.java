@@ -3,6 +3,7 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import com.sparta.blackwhitedeliverydriver.dto.StoreIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.StoreByMasterRequestDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.StoreService;
 import jakarta.validation.Valid;
@@ -50,10 +51,20 @@ public class StoreController {
     @GetMapping("/{storeId}")
     public ResponseEntity<?> getStoreById(
             @RequestParam(value = "isExceptDelete", defaultValue = "true") Boolean isExceptDelete,
+            @RequestParam(value = "isPublic", defaultValue = "true") Boolean isPublic,
             @PathVariable("storeId") UUID storeId
     ){
-        StoreResponseDto storeResponseDto = storeService.getStore(isExceptDelete, storeId);
+        StoreResponseDto storeResponseDto = storeService.getStore(isExceptDelete, isPublic, storeId);
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDto);
+    }
+
+    @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
+    @GetMapping("/{storeId}/public-switch")
+    public ResponseEntity<?> publicSwitch(
+            @PathVariable("storeId") UUID storeId
+    ){
+        StoreIdResponseDto storeIdResponseDto = storeService.publicSwitch(storeId);
+        return ResponseEntity.status(HttpStatus.OK).body(storeIdResponseDto);
     }
 
     @Secured("ROLE_OWNER")
@@ -95,6 +106,15 @@ public class StoreController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }
+
+    @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
+    @PostMapping("/master")
+    public ResponseEntity<?> createStoreByMaster(@Valid @RequestBody StoreByMasterRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 점포 등록
+        StoreIdResponseDto storeIdResponseDto = storeService.createStoreByMaster(requestDto, userDetails.getUser());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
+    }
     // Manager, Master -> Owner의 가게 등록 => is_public 업데이트, Owner 정보 대신 입력
 
     @Secured("ROLE_OWNER")
@@ -106,8 +126,20 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
     }
 
-    // Manager, Master -> Owner의 가게 수정
+    @Secured({"ROLE_MANAGER", "ROLE_MASTER"})
+    @PutMapping("/{storeId}/master")
+    public ResponseEntity<?> updateStoreByMaster(
+            @PathVariable UUID storeId,
+            @RequestBody StoreByMasterRequestDto requestDto,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {// Manager, Master -> Owner의 가게 수정
+        // 점포 수정
+        StoreIdResponseDto storeIdResponseDto = storeService.updateStoreByMaster(storeId, requestDto, userDetails);
 
+        return ResponseEntity.status(HttpStatus.CREATED).body(storeIdResponseDto);
+    }
+
+    @Secured({"ROLE_OWNER","ROLE_MANAGER","ROLE_MASTER"})
     @DeleteMapping("/{storeId}")
     public ResponseEntity<?> deleteStore(@PathVariable UUID storeId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 점포 삭제
