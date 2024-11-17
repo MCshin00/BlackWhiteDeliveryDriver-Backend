@@ -41,27 +41,9 @@ public class ProductController {
 
     @Secured({"ROLE_OWNER", "ROLE_MANAGER", "ROLE_MASTER"})
     @PostMapping("/")
-    public ResponseEntity<?> createProduct(@RequestBody CreateProductRequestDto requestDto,
+    public ResponseEntity<?> createProductByOwner(@RequestBody CreateProductRequestDto requestDto,
                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        System.out.println("음식 등록 검증");
-        if(userDetails.getUser().getRole().equals(UserRoleEnum.CUSTOMER)){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("CUSTOMER는 음식을 등록할 권한이 없습니다.");
-        }
-        else if(userDetails.getUser().getRole().equals(UserRoleEnum.OWNER)){
-            // 가게 주인이 자신의 가게에 등록
-            String nameOfOwner = storeService.getNameOfOwner(requestDto.getStoreId());
-            if(!nameOfOwner.equals(userDetails.getUser().getUsername())){
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("가게의 OWNER만 음식을 등록할 수 있습니다.");
-            }
-        }
-        // Manager or Master가 등록
-
-        // 음식 등록
-        System.out.println("음식 등록");
-        UUID productId = productService.createProduct(requestDto, userDetails.getUser());
-        System.out.println("음식 ID 조회");
-        ProductIdResponseDto productIdResponseDto = new ProductIdResponseDto(productId);
-        System.out.println("음식 등록 끝");
+        ProductIdResponseDto productIdResponseDto = productService.createProductByOwner(requestDto, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(productIdResponseDto);
     }
 
@@ -75,24 +57,15 @@ public class ProductController {
         }
 
         // 음식 수정
-        ProductIdResponseDto productIdResponseDto = new ProductIdResponseDto(productService.updateProduct(productId, requestDto, userDetails));
-
+        ProductIdResponseDto productIdResponseDto = productService.updateProduct(productId, requestDto, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(productIdResponseDto);
     }
 
     @Secured({"ROLE_OWNER", "ROLE_MANAGER", "ROLE_MASTER"})
     @DeleteMapping("/{productId}")
     public ResponseEntity<?> deleteProduct(@PathVariable UUID productId, @AuthenticationPrincipal UserDetailsImpl userDetails){
-        // OWNER의 가게인지 확인 -> 본인 가게만 수정
-        UUID storeId = productService.findStoreIdByProductId(productId);
-        if(!userDetails.getUser().getRole().equals(UserRoleEnum.OWNER) || !isStoreOfOwner(storeId, userDetails)){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인 점포만 수정이 가능합니다.");
-        }
-
         // 음식 삭제
-        productService.deleteProduct(productId, userDetails);
-
-        ProductIdResponseDto productIdResponseDto = new ProductIdResponseDto(productId);
+        ProductIdResponseDto productIdResponseDto = productService.deleteProduct(productId, userDetails);
 
         return ResponseEntity.status(HttpStatus.OK).body(productIdResponseDto);
     }

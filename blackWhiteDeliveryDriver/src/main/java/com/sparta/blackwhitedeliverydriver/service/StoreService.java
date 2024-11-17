@@ -150,14 +150,6 @@ public class StoreService {
         return new StoreIdResponseDto(store.getStoreId());
     }
 
-    public String getNameOfOwner(UUID storeId) {
-        User user = storeRepository.findById(storeId).map(Store::getUser).orElseThrow(
-                () -> new NullPointerException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage())
-        );
-
-        return user.getUsername();
-    }
-
     public List<StoreResponseDto> getStores(int page, int size, String sortBy, boolean isAsc) {
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, sortBy);
