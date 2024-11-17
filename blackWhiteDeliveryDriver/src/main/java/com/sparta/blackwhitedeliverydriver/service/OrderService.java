@@ -148,7 +148,7 @@ public class OrderService {
 
         //유저 점포 유효성
         UserRoleEnum role = user.getRole();
-        if (role.equals(UserRoleEnum.CUSTOMER)) {
+        if (role.equals(UserRoleEnum.OWNER)) {
             checkStoreOwnerEquals(store, user);
         }
 

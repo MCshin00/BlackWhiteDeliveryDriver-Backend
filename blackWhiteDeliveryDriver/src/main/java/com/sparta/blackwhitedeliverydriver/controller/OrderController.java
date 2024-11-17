@@ -33,7 +33,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @Secured({"ROLE_CUSTOMER"})
-    @PostMapping
+    @PostMapping//테스트 완료
     public ResponseEntity<OrderResponseDto> createOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                         @RequestBody @Valid OrderAddRequestDto request) {
         //주문서 생성
@@ -43,7 +43,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping("/{orderId}")
+    @GetMapping("/{orderId}")//테스트 완료
     public ResponseEntity<OrderGetDetailResponseDto> getOrderDetail(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable UUID orderId) {
@@ -54,7 +54,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping
+    @GetMapping//테스트 완료
     public ResponseEntity<Page<OrderGetResponseDto>> getOrders(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam("page") int page,
@@ -69,7 +69,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_OWNER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping("/{storeId}")
+    @GetMapping("/stores/{storeId}")//테스트 완료
     public ResponseEntity<Page<OrderGetResponseDto>> getOrdersByStore(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam("page") int page,
