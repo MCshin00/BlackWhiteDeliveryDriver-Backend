@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,8 +50,7 @@ public class Basket extends BaseEntity {
                 .build();
     }
 
-    public static Basket ofUserAndStoreAndRequest(User user, Store store, Product product,
-                                                  BasketAddRequestDto requestDto) {
+    public static Basket ofUserAndStoreAndRequest(User user, Store store, Product product, BasketAddRequestDto requestDto) {
         return Basket.builder()
                 .product(product)
                 .store(store)
@@ -65,8 +63,4 @@ public class Basket extends BaseEntity {
         this.quantity = quantity;
     }
 
-    public void updateDeleteInfo(String username, LocalDateTime deletedAt) {
-        this.setDeletedBy(username);
-        this.setDeletedDate(deletedAt);
-    }
 }

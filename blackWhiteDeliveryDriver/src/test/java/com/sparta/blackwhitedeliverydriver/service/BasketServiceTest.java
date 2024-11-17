@@ -378,7 +378,6 @@ class BasketServiceTest {
         assertEquals(BasketExceptionMessage.BASKET_USER_NOT_EQUALS.getMessage(), exception.getMessage());
     }
 
-    /*
     @Test
     @DisplayName("장바구니 조회 성공")
     void getBaskets() {
@@ -437,8 +436,6 @@ class BasketServiceTest {
         Exception exception = assertThrows(NullPointerException.class, () -> basketService.getBaskets(username));
         assertEquals(ExceptionMessage.USER_NOT_FOUND.getMessage(), exception.getMessage());
     }
-
-     */
 
     @Test
     @DisplayName("장바구니 수정 성공")

@@ -1,7 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,7 +19,6 @@ import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.mock.user.MockUser;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,10 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -140,86 +134,53 @@ class BasketControllerTest {
 
     @Test
     @DisplayName("장바구니 조회 성공")
-    @MockUser(role = UserRoleEnum.CUSTOMER, username = "user")
+    @MockUser(role = UserRoleEnum.CUSTOMER)
     void getBaskets_success() throws Exception {
-        // given
-        String username = "user";
-        String storeName = "store";
-        String productName = "product";
-        Integer quantity = 2;
+        //given
         UUID basketId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
-
+        String storeName = "storeName";
+        Integer quantity = 2;
         BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
                 .basketId(basketId)
-                .username(username)
-                .storeId(storeId)
                 .productId(productId)
+                .storeName(storeName)
+                .storeId(storeId)
                 .quantity(quantity)
                 .build();
+        //when
+        when(basketService.getBaskets(any())).thenReturn(List.of(responseDto));
 
-        // 페이징 관련 설정
-        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "storeName"));
-        Page<BasketGetResponseDto> pageResponse = new PageImpl<>(List.of(responseDto), pageRequest, 1);
-
-        when(basketService.getBaskets(eq(username), eq(0), eq(10), eq("storeName"), eq(true)))
-                .thenReturn(pageResponse);
-
-        // when & then
-        mvc.perform(get(BASE_URL + "/baskets")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .param("sortBy", "storeName")
-                        .param("isAsc", "true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].basketId").value(basketId.toString()))
-                .andExpect(jsonPath("$.content[0].username").value(username))
-                .andExpect(jsonPath("$.content[0].storeId").value(storeId.toString()))
-                .andExpect(jsonPath("$.content[0].productId").value(productId.toString()))
-                .andExpect(jsonPath("$.content[0].quantity").value(quantity))
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(10));
+        //then
+        mvc.perform(get(BASE_URL + "/baskets"))
+                .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("장바구니 조회 실패: 유효하지 않은 사용자")
+    @DisplayName("장바구니 조회 실패 : 허용하지 않은 권한")
     @MockUser(role = UserRoleEnum.OWNER)
-    void getBaskets_fail_invalidUser() throws Exception {
-        // given
-        String username = "user";
-        String storeName = "store";
-        String productName = "product";
-        Integer quantity = 2;
+    void getBaskets_fail() throws Exception {
+        //given
         UUID basketId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
         UUID storeId = UUID.randomUUID();
-
+        String storeName = "storeName";
+        Integer quantity = 2;
         BasketGetResponseDto responseDto = BasketGetResponseDto.builder()
                 .basketId(basketId)
-                .username(username)
-                .storeId(storeId)
                 .productId(productId)
+                .storeName(storeName)
+                .storeId(storeId)
                 .quantity(quantity)
                 .build();
+        //when
+        when(basketService.getBaskets(any())).thenReturn(List.of(responseDto));
 
-        // 페이징 관련 설정
-        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "storeName"));
-        Page<BasketGetResponseDto> pageResponse = new PageImpl<>(List.of(responseDto), pageRequest, 1);
-
-        when(basketService.getBaskets(eq(username), eq(0), eq(10), eq("storeName"), eq(true)))
-                .thenReturn(pageResponse);
-
-        // when & then
-        mvc.perform(get(BASE_URL + "/baskets")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .param("sortBy", "storeName")
-                        .param("isAsc", "true"))
+        //then
+        mvc.perform(get(BASE_URL + "/baskets"))
                 .andExpect(status().isForbidden());
     }
-
 
     @Test
     @DisplayName("장바구니 수정 성공")
