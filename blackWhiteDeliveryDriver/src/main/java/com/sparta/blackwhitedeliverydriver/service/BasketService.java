@@ -83,7 +83,7 @@ public class BasketService {
         //유저와 장바구니 유저 체크
         checkBasketUser(user, basket);
 
-        basket.updateDeleteInfo(username, LocalDateTime.now());
+        basket.softDelete(username, LocalDateTime.now());
         basketRepository.save(basket);
 
         return BasketResponseDto.fromBasket(basket);

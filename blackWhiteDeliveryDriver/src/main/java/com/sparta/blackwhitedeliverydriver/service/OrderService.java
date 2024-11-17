@@ -1,5 +1,6 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
+import com.sparta.blackwhitedeliverydriver.dto.OrderAddRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.OrderResponseDto;
@@ -15,16 +16,21 @@ import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
+import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,22 +43,24 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
 
     @Transactional
-    public OrderResponseDto createOrder(String username) {
+    public OrderResponseDto createOrder(String username, OrderAddRequestDto request) {
         //유저 유효성 검사
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
 
         //유저와 관련된 장바구니 품목 찾기
-        List<Basket> baskets = basketRepository.findAllByUser(user);
+        List<Basket> baskets = basketRepository.findAllByUserAndNotDeleted(user);
 
         //장바구니 개수 체크
         checkBasketCount(baskets);
 
         //order 엔티티 생성 및 저장
         Store store = baskets.get(0).getStore();
-        Order order = Order.ofUserAndStore(user, store);
+        Order order = Order.ofUserAndStore(user, store, request.getType());
         order = orderRepository.save(order);
 
         //연관관계 테이블에 장바구니 품목 저장
@@ -65,7 +73,10 @@ public class OrderService {
         orderProductRepository.saveAll(orderProducts);
 
         //장바구니 삭제
-        basketRepository.deleteAll(baskets);
+        for (Basket basket : baskets) {
+            basket.softDelete(username, LocalDateTime.now());
+            basketRepository.save(basket);
+        }
 
         //최종금액 계산 및 업데이트
         int price = calculateFinalPay(orderProducts);
@@ -79,10 +90,12 @@ public class OrderService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
 
         //주문 유효성
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        checkDeletedOrder(order);
 
         // CUSTOMER인 경우 Order의 user인지 체크
         if (user.getRole().equals(UserRoleEnum.CUSTOMER)) {
@@ -90,26 +103,84 @@ public class OrderService {
         }
 
         // Product Entity 구현되면 음식 목록도 포함하여 리턴
-        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
+        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrderAndNotDeleted(order);
 
         return OrderGetDetailResponseDto.of(order, orderProducts);
     }
 
-    public List<OrderGetResponseDto> getOrders(String username) {
+    public Page<OrderGetResponseDto> getOrders(String username, int page, int size, String sortBy, boolean isAsc) {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
+
+        //페이징
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         //주문 조회
         UserRoleEnum role = user.getRole();
-        List<Order> orders;
+        Page<Order> orders;
         if (role.equals(UserRoleEnum.CUSTOMER)) {
-            orders = orderRepository.findAllByUser(user);
+            orders = orderRepository.findAllByUserAndNotDeleted(user, pageable);
         } else {
-            orders = orderRepository.findAll();
+            orders = orderRepository.findAll(pageable);
         }
 
-        return orders.stream().map(OrderGetResponseDto::fromOrder).collect(Collectors.toList());
+        return orders.map(OrderGetResponseDto::fromOrder);
+    }
+
+    public Page<OrderGetResponseDto> getOrdersByStore(String username, int page, int size, String sortBy, boolean isAsc,
+                                                      UUID storeId) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
+
+        //점포 유효성
+        Store store = storeRepository.findById(storeId).orElseThrow(() -> new NullPointerException(
+                StoreExceptionMessage.STORE_NOT_FOUND.getMessage()));
+        checkDeletedStore(store);
+
+        //유저 점포 유효성
+        UserRoleEnum role = user.getRole();
+        if (role.equals(UserRoleEnum.CUSTOMER)) {
+            checkStoreOwnerEquals(store, user);
+        }
+
+        //페이징
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        //주문 조회
+        Page<Order> orders = orderRepository.findAllByStoreAndNotDeleted(store, pageable);
+
+        return orders.map(OrderGetResponseDto::fromOrder);
+    }
+
+    public Page<OrderGetResponseDto> searchOrdersByStoreName(String storeName, int page, int size, String sortBy,
+                                                             boolean isAsc) {
+        // 페이징 및 정렬 정보 생성
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 점포 이름으로 주문 검색
+        Page<Order> orders = orderRepository.findByStoreNameContaining(storeName, pageable);
+
+        // DTO로 변환하여 반환
+        return orders.map(OrderGetResponseDto::fromOrder);
     }
 
     @Transactional
@@ -117,10 +188,12 @@ public class OrderService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
 
         //주문 유효성
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        checkDeletedOrder(order);
 
         //주문의 점포 주인과 유저 체크
         checkStoreOwnerEquals(order.getStore(), user);
@@ -134,10 +207,12 @@ public class OrderService {
         //유저 유효성
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
 
         //주문 유효성
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NullPointerException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage()));
+        checkDeletedOrder(order);
 
         //주문 유저 와 API 호출한 유저 체크
         checkOrderUser(order, user);
@@ -146,17 +221,22 @@ public class OrderService {
         checkEnableDeleteOrderStatus(order);
 
         //orderProduct 조회 후 basket 저장
-        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
+        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrderAndNotDeleted(order);
         for (OrderProduct orderProduct : orderProducts) {
-            Basket basket = Basket.ofUserAndOrderProduct(user, orderProduct.getProduct(), orderProduct); // 수정이 필요
+            Basket basket = Basket.ofUserAndOrderProduct(user, orderProduct.getProduct(), orderProduct);
             basketRepository.save(basket);
         }
 
-        //orderProduct 삭제
-        orderProductRepository.deleteAll(orderProducts);
+        // OrderProduct 소프트 딜리트 처리
+        for (OrderProduct orderProduct : orderProducts) {
+            orderProduct.softDelete(user.getUsername(), LocalDateTime.now());
+            orderProductRepository.save(orderProduct);
+        }
 
         //order 삭제
-        orderRepository.delete(order);
+        order.softDelete(username, LocalDateTime.now());
+        orderRepository.save(order);
+
         return new OrderResponseDto(order.getId());
     }
 
@@ -193,4 +273,21 @@ public class OrderService {
         }
     }
 
+    private void checkDeletedUser(User user) {
+        if (user.getDeletedDate() != null || user.getDeletedBy() != null) {
+            throw new IllegalArgumentException(ExceptionMessage.USER_DELETED.getMessage());
+        }
+    }
+
+    private void checkDeletedStore(Store store) {
+        if (store.getDeletedDate() != null || store.getDeletedBy() != null) {
+            throw new IllegalArgumentException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage());
+        }
+    }
+
+    private void checkDeletedOrder(Order order) {
+        if (order.getDeletedDate() != null || order.getDeletedBy() != null) {
+            throw new IllegalArgumentException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage());
+        }
+    }
 }

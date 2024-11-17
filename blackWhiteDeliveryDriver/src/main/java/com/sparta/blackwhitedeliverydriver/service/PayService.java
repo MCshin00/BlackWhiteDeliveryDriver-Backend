@@ -166,7 +166,7 @@ public class PayService {
         }
 
         //Order에 관한 OrderProduct 조회
-        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(pay.getOrder());
+        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrderAndNotDeleted(pay.getOrder());
 
         return PayGetDetailResponseDto.ofPayAndOrderProducts(pay, orderProducts);
     }

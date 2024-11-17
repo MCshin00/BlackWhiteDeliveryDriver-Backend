@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,12 +54,16 @@ public class Order extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private OrderStatusEnum status;
 
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private OrderTypeEnum type;
+
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Review review;
 
     private String tid;
 
-    public static Order ofUserAndStore(User user, Store store) {
+    public static Order ofUserAndStore(User user, Store store, OrderTypeEnum type) {
         return Order.builder()
                 .user(user)
                 .store(store)
@@ -66,6 +71,7 @@ public class Order extends BaseEntity {
                 .discountAmount(0)
                 .discountRate(0)
                 .status(OrderStatusEnum.CREATE)
+                .type(type)
                 .build();
     }
 
@@ -79,5 +85,10 @@ public class Order extends BaseEntity {
 
     public void updateTid(String tid) {
         this.tid = tid;
+    }
+
+    public void softDelete(String username, LocalDateTime deletedAt) {
+        this.setDeletedBy(username);
+        this.setDeletedDate(deletedAt);
     }
 }
