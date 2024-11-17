@@ -52,6 +52,7 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDto);
     }
 
+    @Secured("ROLE_OWNER")
     @GetMapping("/owner")
     public ResponseEntity<?> getStoreOfOwner(
             @RequestParam("page") int page,
@@ -80,6 +81,7 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(storeResponseDtoPage);
     }
 
+    @Secured("ROLE_OWNER")
     @PostMapping("/")
     public ResponseEntity<?> createStore(@Valid @RequestBody StoreRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // OWNER인지 확인 -> 본인 가게 등록
