@@ -158,6 +158,22 @@ public class OrderService {
         return orders.map(OrderGetResponseDto::fromOrder);
     }
 
+    public Page<OrderGetResponseDto> searchOrdersByStoreName(String storeName, int page, int size, String sortBy, boolean isAsc) {
+        // 페이징 및 정렬 정보 생성
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 점포 이름으로 주문 검색
+        Page<Order> orders = orderRepository.findByStoreNameContaining(storeName, pageable);
+
+        // DTO로 변환하여 반환
+        return orders.map(OrderGetResponseDto::fromOrder);
+    }
+
     @Transactional
     public OrderResponseDto updateOrderStatus(String username, OrderUpdateRequestDto request) {
         //유저 유효성

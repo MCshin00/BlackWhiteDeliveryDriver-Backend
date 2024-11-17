@@ -8,7 +8,6 @@ import com.sparta.blackwhitedeliverydriver.dto.OrderUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.OrderService;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -79,7 +78,8 @@ public class OrderController {
             @RequestParam("isAsc") boolean isAsc,
             @PathVariable UUID storeId) {
         //주문 목록 조회
-        Page<OrderGetResponseDto> responseList = orderService.getOrdersByStore(userDetails.getUsername(), page - 1, size,
+        Page<OrderGetResponseDto> responseList = orderService.getOrdersByStore(userDetails.getUsername(), page - 1,
+                size,
                 sortBy, isAsc, storeId);
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(responseList);
@@ -103,5 +103,20 @@ public class OrderController {
         OrderResponseDto response = orderService.deleteOrder(userDetails.getUsername(), orderId);
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Secured({"ROLE_MASTER", "ROLE_MANAGER"})
+    @GetMapping("/search")
+    public ResponseEntity<Page<OrderGetResponseDto>> searchOrders(
+            @RequestParam("storeName") String storeName,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc) {
+        // 서비스 호출
+        Page<OrderGetResponseDto> responseList = orderService.searchOrdersByStoreName(
+                storeName, page, size, sortBy, isAsc);
+
+        return ResponseEntity.ok(responseList);
     }
 }
