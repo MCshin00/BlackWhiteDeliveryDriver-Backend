@@ -46,6 +46,7 @@ public class Basket extends BaseEntity {
     public static Basket ofUserAndOrderProduct(User user, Product product, OrderProduct orderProduct) {
         return Basket.builder()
                 .product(product)
+                .store(orderProduct.getOrder().getStore())
                 .quantity(orderProduct.getQuantity())
                 .user(user)
                 .build();

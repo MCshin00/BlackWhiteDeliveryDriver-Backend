@@ -33,7 +33,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @Secured({"ROLE_CUSTOMER"})
-    @PostMapping
+    @PostMapping//테스트 완료
     public ResponseEntity<OrderResponseDto> createOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                         @RequestBody @Valid OrderAddRequestDto request) {
         //주문서 생성
@@ -43,7 +43,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping("/{orderId}")
+    @GetMapping("/{orderId}")//테스트 완료
     public ResponseEntity<OrderGetDetailResponseDto> getOrderDetail(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable UUID orderId) {
@@ -54,7 +54,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping
+    @GetMapping//테스트 완료
     public ResponseEntity<Page<OrderGetResponseDto>> getOrders(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam("page") int page,
@@ -69,7 +69,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_OWNER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping("/{storeId}")
+    @GetMapping("/stores/{storeId}")//테스트 완료
     public ResponseEntity<Page<OrderGetResponseDto>> getOrdersByStore(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam("page") int page,
@@ -88,7 +88,7 @@ public class OrderController {
     @Secured({"ROLE_OWNER", "ROEL_MASTER", "ROLE_MANAGER"})
     @PutMapping
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                              @RequestBody OrderUpdateRequestDto request) {
+                                                              @RequestBody @Valid OrderUpdateRequestDto request) {
         //주문 상태 변경
         OrderResponseDto response = orderService.updateOrderStatus(userDetails.getUsername(), request);
         //200 반환
@@ -96,7 +96,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @DeleteMapping("/{orderId}")
+    @DeleteMapping("/{orderId}")//테스트 완료
     public ResponseEntity<OrderResponseDto> deleteOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                         @PathVariable UUID orderId) {
         //주문 취소
@@ -106,7 +106,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping("/search")
+    @GetMapping("/search")//테스트 완료
     public ResponseEntity<Page<OrderGetResponseDto>> searchOrders(
             @RequestParam("storeName") String storeName,
             @RequestParam("page") int page,
@@ -115,7 +115,7 @@ public class OrderController {
             @RequestParam("isAsc") boolean isAsc) {
         // 서비스 호출
         Page<OrderGetResponseDto> responseList = orderService.searchOrdersByStoreName(
-                storeName, page, size, sortBy, isAsc);
+                storeName, page-1, size, sortBy, isAsc);
 
         return ResponseEntity.ok(responseList);
     }
