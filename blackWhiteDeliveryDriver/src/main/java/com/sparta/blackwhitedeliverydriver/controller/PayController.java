@@ -101,7 +101,7 @@ public class PayController {
             @RequestParam("sortBy") String sortBy,
             @RequestParam("isAsc") boolean isAsc) {
 
-        Page<PayGetResponseDto> response = payService.searchPaymentsByStoreName(storeName, page, size, sortBy,
+        Page<PayGetResponseDto> response = payService.searchPaymentsByStoreName(storeName, page-1, size, sortBy,
                 isAsc);
 
         return ResponseEntity.ok(response);
