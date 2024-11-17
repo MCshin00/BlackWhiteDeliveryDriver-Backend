@@ -39,6 +39,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(productResponseDtoList);
     }
 
+    @Secured({"ROLE_OWNER", "ROLE_MANAGER", "ROLE_MASTER"})
     @PostMapping("/")
     public ResponseEntity<?> createProduct(@RequestBody CreateProductRequestDto requestDto,
                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -64,6 +65,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productIdResponseDto);
     }
 
+    @Secured({"ROLE_OWNER", "ROLE_MANAGER", "ROLE_MASTER"})
     @PutMapping("/{productId}")
     public ResponseEntity<?> updateProduct(@PathVariable UUID productId, @RequestBody ProductRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails){
         // OWNER의 가게인지 확인 -> 본인 가게만 수정
@@ -78,6 +80,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productIdResponseDto);
     }
 
+    @Secured({"ROLE_OWNER", "ROLE_MANAGER", "ROLE_MASTER"})
     @DeleteMapping("/{productId}")
     public ResponseEntity<?> deleteProduct(@PathVariable UUID productId, @AuthenticationPrincipal UserDetailsImpl userDetails){
         // OWNER의 가게인지 확인 -> 본인 가게만 수정
