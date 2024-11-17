@@ -32,7 +32,7 @@ public class Store extends BaseEntity {
     private UUID storeId;
     @Column(name = "store_name", nullable = false, unique = true)
     private String storeName;
-    @Column(name = "phone_number", nullable = false, unique = true)
+    @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
     @Column(name = "status", nullable = false)
     private Boolean status = true; // 매장 운영 여부
