@@ -2,6 +2,7 @@ package com.sparta.blackwhitedeliverydriver.dto;
 
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.OrderTypeEnum;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,7 @@ public class OrderGetResponseDto {
     private UUID storeId;
     private String username;
     private OrderStatusEnum status;
+    private OrderTypeEnum type;
     private Integer finalPay;
     private Integer discountRate;
     private Integer discountAmount;
@@ -27,6 +29,7 @@ public class OrderGetResponseDto {
                 .storeId(order.getStore().getStoreId())
                 .username(order.getUser().getUsername())
                 .status(order.getStatus())
+                .type(order.getType())
                 .finalPay(order.getFinalPay())
                 .discountRate(order.getDiscountRate())
                 .discountAmount(order.getDiscountAmount())
