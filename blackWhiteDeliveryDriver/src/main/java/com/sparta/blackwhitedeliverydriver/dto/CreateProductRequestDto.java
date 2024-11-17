@@ -9,7 +9,7 @@ public class CreateProductRequestDto {
     @NotBlank
     private UUID storeId;
     @NotBlank
-    private String name;
+    private String productName;
     @NotBlank
     private Integer price;
     private String imgUrl;

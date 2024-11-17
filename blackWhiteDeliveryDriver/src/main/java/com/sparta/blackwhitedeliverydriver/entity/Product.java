@@ -48,7 +48,7 @@ public class Product extends BaseEntity {
 
     public static Product from(CreateProductRequestDto requestDto, Store store) {
         return Product.builder()
-                .name(requestDto.getName())
+                .name(requestDto.getProductName())
                 .price(requestDto.getPrice())
                 .isPublic(true)
                 .imgUrl(requestDto.getImgUrl())
