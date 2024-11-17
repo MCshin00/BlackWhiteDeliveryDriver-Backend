@@ -25,7 +25,6 @@ class BasketAddRequestDtoTest {
     public void testProductIdNotNull() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(null)
-                .storeId(UUID.randomUUID())
                 .quantity(10)
                 .build();
 
@@ -38,7 +37,6 @@ class BasketAddRequestDtoTest {
     public void testStoreIdNotNull() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(UUID.randomUUID())
-                .storeId(null)
                 .quantity(10)
                 .build();
 
@@ -51,7 +49,6 @@ class BasketAddRequestDtoTest {
     public void testQuantityNotNull() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(UUID.randomUUID())
-                .storeId(UUID.randomUUID())
                 .quantity(null)
                 .build();
 
@@ -64,7 +61,6 @@ class BasketAddRequestDtoTest {
     public void testQuantityMinBoundary() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(UUID.randomUUID())
-                .storeId(UUID.randomUUID())
                 .quantity(1)
                 .build();
 
@@ -77,7 +73,6 @@ class BasketAddRequestDtoTest {
     public void testQuantityMaxBoundary() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(UUID.randomUUID())
-                .storeId(UUID.randomUUID())
                 .quantity(99)
                 .build();
 
@@ -90,7 +85,6 @@ class BasketAddRequestDtoTest {
     public void testQuantityBelowMin() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(UUID.randomUUID())
-                .storeId(UUID.randomUUID())
                 .quantity(0)
                 .build();
 
@@ -103,7 +97,6 @@ class BasketAddRequestDtoTest {
     public void testQuantityAboveMax() {
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(UUID.randomUUID())
-                .storeId(UUID.randomUUID())
                 .quantity(100)
                 .build();
 

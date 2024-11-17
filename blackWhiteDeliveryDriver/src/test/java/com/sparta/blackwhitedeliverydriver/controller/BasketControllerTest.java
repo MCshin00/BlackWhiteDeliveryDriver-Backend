@@ -60,7 +60,6 @@ class BasketControllerTest {
         int quantity = 2;
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(productId)
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
         BasketResponseDto response = new BasketResponseDto(basketId);
@@ -88,7 +87,6 @@ class BasketControllerTest {
         int quantity = 2;
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(productId)
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
         BasketResponseDto response = new BasketResponseDto(basketId);

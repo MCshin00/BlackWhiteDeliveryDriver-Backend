@@ -34,7 +34,7 @@ public class BasketController {
     @Secured({"ROLE_CUSTOMER"})
     @PostMapping
     public ResponseEntity<BasketResponseDto> addProductToBasket(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                                @Valid @RequestBody BasketAddRequestDto request) {
+                                                                @RequestBody @Valid BasketAddRequestDto request) {
         //장바구니 추가
         BasketResponseDto response = basketService.addProductToBasket(userDetails.getUsername(), request);
 
@@ -59,7 +59,7 @@ public class BasketController {
                                                                  @RequestParam("sortBy") String sortBy,
                                                                  @RequestParam("isAsc") boolean isAsc) {
         //장바구니 리스트 조회
-        Page<BasketGetResponseDto> responseDtoList = basketService.getBaskets(userDetails.getUsername(), page, size,
+        Page<BasketGetResponseDto> responseDtoList = basketService.getBaskets(userDetails.getUsername(), page-1, size,
                 sortBy, isAsc);
         //200 응답
         return ResponseEntity.status(HttpStatus.OK).body(responseDtoList);
@@ -68,7 +68,7 @@ public class BasketController {
     @Secured({"ROLE_CUSTOMER"})
     @PutMapping
     public ResponseEntity<BasketResponseDto> updateBasket(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                          @RequestBody BasketUpdateRequestDto request) {
+                                                          @RequestBody @Valid BasketUpdateRequestDto request) {
         //장바구니 수정
         BasketResponseDto response = basketService.updateBasket(userDetails.getUsername(), request);
         //200 응답
@@ -86,7 +86,7 @@ public class BasketController {
             @RequestParam("isAsc") boolean isAsc) {
 
         Page<BasketGetResponseDto> baskets = basketService.searchBasketsByProductName(userDetails.getUsername(),
-                productName, page, size, sortBy, isAsc);
+                productName, page-1, size, sortBy, isAsc);
         return ResponseEntity.ok(baskets);
     }
 }

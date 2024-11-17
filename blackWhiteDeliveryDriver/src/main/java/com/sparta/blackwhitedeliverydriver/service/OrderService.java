@@ -55,6 +55,9 @@ public class OrderService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         checkDeletedUser(user);
 
+        //이미 존재하는 주문 건이 있는지 확인
+        checkCreatedOrderByUser(username);
+
         //유저와 관련된 장바구니 품목 찾기
         List<Basket> baskets = basketRepository.findAllByUserAndNotDeleted(user);
 
@@ -312,5 +315,12 @@ public class OrderService {
         if (!order.getStatus().equals(status)) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_UPDATE.getMessage());
         }
+    }
+
+    private void checkCreatedOrderByUser(String username) {
+        orderRepository.findActiveOrderByUser(username)
+                .ifPresent(order -> {
+                    throw new IllegalArgumentException(OrderExceptionMessage.ORDER_ALREADY_EXIST.getMessage());
+                });
     }
 }
