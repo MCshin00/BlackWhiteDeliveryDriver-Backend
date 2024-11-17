@@ -84,6 +84,16 @@ public class CategoryService {
         return new CategoryIdResponseDto(category.getCategoryId());
     }
 
+    @Transactional
+    public CategoryIdResponseDto deleteCategory(UUID categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException(CategoryExceptionMessage.CATEGORY_NOT_FOUND.getMessage()));
+
+        categoryRepository.delete(category);
+
+        return new CategoryIdResponseDto(category.getCategoryId());
+    }
+
     private void checkCategoryName(String name, String currentName) {
         categoryRepository.findByName(name)
                 .filter(category -> !category.getName().equals(currentName))
