@@ -31,6 +31,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -180,6 +184,32 @@ public class PayService {
         return PayGetDetailResponseDto.ofPayAndOrderProducts(pay, orderProducts);
     }
 
+    public Page<PayGetResponseDto> getPays(String username, int page, int size, String sortBy, boolean isAsc) {
+        //유저 유효성
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
+
+        //페이징
+        if (size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        //유저 권한별 반환
+        Page<Pay> pays;
+        UserRoleEnum role = user.getRole();
+        if (role.equals(UserRoleEnum.CUSTOMER)) {
+            pays = payRepository.findAllByUser(user, pageable);
+        } else {
+            pays = payRepository.findAll(pageable);
+        }
+
+        return pays.map(PayGetResponseDto::fromPay);
+    }
+
     private void checkOrderUser(Order order, User user) {
         String orderUsername = order.getUser().getUsername();
         String username = user.getUsername();
@@ -192,23 +222,6 @@ public class PayService {
         if (!order.getStatus().equals(OrderStatusEnum.CREATE)) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_UNABLE_PAY_STATUS.getMessage());
         }
-    }
-
-    public List<PayGetResponseDto> getPays(String username) {
-        //유저 유효성
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
-
-        //유저 권한별 반환
-        List<Pay> pays;
-        UserRoleEnum role = user.getRole();
-        if (role.equals(UserRoleEnum.CUSTOMER)) {
-            pays = payRepository.findAllByUser(username);
-        } else {
-            pays = payRepository.findAll();
-        }
-
-        return pays.stream().map(PayGetResponseDto::fromPay).collect(Collectors.toList());
     }
 
     private void checkDeletedUser(User user) {
@@ -230,7 +243,7 @@ public class PayService {
     }
 
     private void checkOrderType(Order order) {
-        if(order.getType().equals(OrderTypeEnum.OFFLINE)){
+        if (order.getType().equals(OrderTypeEnum.OFFLINE)) {
             throw new IllegalArgumentException(PayExceptionMessage.PAY_OFFLINE_TYPE.getMessage());
         }
     }

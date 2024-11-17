@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -68,9 +69,14 @@ public class PayController {
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
     @GetMapping
-    public ResponseEntity<List<PayGetResponseDto>> getPays(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<Page<PayGetResponseDto>> getPays(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                           @RequestParam("page") int page,
+                                                           @RequestParam("size") int size,
+                                                           @RequestParam("sortBy") String sortBy,
+                                                           @RequestParam("isAsc") boolean isAsc) {
         //pay 목록 조회
-        List<PayGetResponseDto> responses = payService.getPays(userDetails.getUsername());
+        Page<PayGetResponseDto> responses = payService.getPays(userDetails.getUsername(), page - 1, size, sortBy,
+                isAsc);
 
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(responses);
