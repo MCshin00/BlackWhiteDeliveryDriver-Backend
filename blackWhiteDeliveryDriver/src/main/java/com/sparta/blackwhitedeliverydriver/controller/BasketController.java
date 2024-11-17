@@ -7,7 +7,6 @@ import com.sparta.blackwhitedeliverydriver.dto.BasketUpdateRequestDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.BasketService;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,7 +43,7 @@ public class BasketController {
     }
 
     @Secured({"ROLE_CUSTOMER"})
-    @DeleteMapping("/{basketId}")
+    @DeleteMapping("/{basketId}")//테스트 완료
     public ResponseEntity<BasketResponseDto> removeProductFromBasket(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable UUID basketId) {
@@ -77,15 +76,17 @@ public class BasketController {
     }
 
     @Secured({"ROLE_CUSTOMER"})
-    @GetMapping("/search")
+    @GetMapping("/search")//테스트 완료
     public ResponseEntity<Page<BasketGetResponseDto>> searchBaskets(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam("productName") String productName,
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam("sortBy") String sortBy,
             @RequestParam("isAsc") boolean isAsc) {
 
-        Page<BasketGetResponseDto> baskets = basketService.searchBasketsByProductName(productName, page, size, sortBy, isAsc);
+        Page<BasketGetResponseDto> baskets = basketService.searchBasketsByProductName(userDetails.getUsername(),
+                productName, page, size, sortBy, isAsc);
         return ResponseEntity.ok(baskets);
     }
 }

@@ -130,7 +130,12 @@ public class BasketService {
         return BasketResponseDto.fromBasket(basket);
     }
 
-    public Page<BasketGetResponseDto> searchBasketsByProductName(String productName, int page, int size, String sortBy, boolean isAsc) {
+    public Page<BasketGetResponseDto> searchBasketsByProductName(String username, String productName, int page,
+                                                                 int size, String sortBy, boolean isAsc) {
+        //유저 유효성 검사
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+        checkDeletedUser(user);
         // 페이징과 정렬 정보 생성
         //페이징
         if (size != 10 && size != 30 && size != 50) {
@@ -141,7 +146,7 @@ public class BasketService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // 데이터 조회 및 변환
-        Page<Basket> baskets = basketRepository.findByProductNameContainingAndNotDeleted(productName, pageable);
+        Page<Basket> baskets = basketRepository.findByProductNameContainingAndUserAndNotDeleted(productName, user, pageable);
         return baskets.map(BasketGetResponseDto::fromBasket);
     }
 

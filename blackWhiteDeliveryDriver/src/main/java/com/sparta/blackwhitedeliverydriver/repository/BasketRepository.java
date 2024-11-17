@@ -19,6 +19,6 @@ public interface BasketRepository extends JpaRepository<Basket, UUID> {
     @Query("SELECT b FROM Basket b WHERE b.user = :user AND b.deletedDate IS NULL")
     Page<Basket> findAllByUserAndNotDeleted(User user, Pageable pageable);
 
-    @Query("SELECT b FROM Basket b WHERE b.product.name LIKE %:productName% AND b.deletedDate IS NULL")
-    Page<Basket> findByProductNameContainingAndNotDeleted(@Param("productName") String productName, Pageable pageable);
+    @Query("SELECT b FROM Basket b WHERE b.product.name LIKE %:productName% AND b.user = :user AND b.deletedDate IS NULL")
+    Page<Basket> findByProductNameContainingAndUserAndNotDeleted(@Param("productName") String productName, User user, Pageable pageable);
 }
