@@ -1,25 +1,24 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
-import com.sparta.blackwhitedeliverydriver.dto.PayGetDetailResponseDto;
-import com.sparta.blackwhitedeliverydriver.dto.PayGetResponseDto;
-import com.sparta.blackwhitedeliverydriver.dto.PayRefundRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayApproveResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayCancelResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayGetDetailResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayGetResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayRefundRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
 import com.sparta.blackwhitedeliverydriver.entity.Order;
 import com.sparta.blackwhitedeliverydriver.entity.OrderProduct;
 import com.sparta.blackwhitedeliverydriver.entity.OrderStatusEnum;
+import com.sparta.blackwhitedeliverydriver.entity.OrderTypeEnum;
 import com.sparta.blackwhitedeliverydriver.entity.Pay;
 import com.sparta.blackwhitedeliverydriver.entity.PayStatusEnum;
-import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.PayExceptionMessage;
-import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.OrderProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.PayRepository;
@@ -68,6 +67,9 @@ public class PayService {
 
         //주문 상태 체크
         checkOrderStatus(order);
+
+        //주문 타입 체크 - 대면인 경우에는 오프라인 계산
+        checkOrderType(order);
 
         //파라미터와 헤더 설정
         Map<String, String> parameters = payUtil.getReadyPayParameters(user, order);
@@ -215,12 +217,6 @@ public class PayService {
         }
     }
 
-    private void checkDeletedStore(Store store) {
-        if (store.getDeletedDate() != null || store.getDeletedBy() != null) {
-            throw new IllegalArgumentException(StoreExceptionMessage.STORE_NOT_FOUND.getMessage());
-        }
-    }
-
     private void checkDeletedOrder(Order order) {
         if (order.getDeletedDate() != null || order.getDeletedBy() != null) {
             throw new IllegalArgumentException(OrderExceptionMessage.ORDER_NOT_FOUND.getMessage());
@@ -230,6 +226,12 @@ public class PayService {
     private void checkDeletedPay(Pay pay) {
         if (pay.getDeletedDate() != null || pay.getDeletedBy() != null) {
             throw new IllegalArgumentException(PayExceptionMessage.PAY_NOT_FOUND.getMessage());
+        }
+    }
+
+    private void checkOrderType(Order order) {
+        if(order.getType().equals(OrderTypeEnum.OFFLINE)){
+            throw new IllegalArgumentException(PayExceptionMessage.PAY_OFFLINE_TYPE.getMessage());
         }
     }
 }
