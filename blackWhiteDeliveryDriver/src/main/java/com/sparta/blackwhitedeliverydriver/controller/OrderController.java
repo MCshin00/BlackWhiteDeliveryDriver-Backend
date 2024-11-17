@@ -96,7 +96,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
-    @DeleteMapping("/{orderId}")
+    @DeleteMapping("/{orderId}")//테스트 완료
     public ResponseEntity<OrderResponseDto> deleteOrder(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                         @PathVariable UUID orderId) {
         //주문 취소
@@ -106,7 +106,7 @@ public class OrderController {
     }
 
     @Secured({"ROLE_MASTER", "ROLE_MANAGER"})
-    @GetMapping("/search")
+    @GetMapping("/search")//테스트 완료
     public ResponseEntity<Page<OrderGetResponseDto>> searchOrders(
             @RequestParam("storeName") String storeName,
             @RequestParam("page") int page,
@@ -115,7 +115,7 @@ public class OrderController {
             @RequestParam("isAsc") boolean isAsc) {
         // 서비스 호출
         Page<OrderGetResponseDto> responseList = orderService.searchOrdersByStoreName(
-                storeName, page, size, sortBy, isAsc);
+                storeName, page-1, size, sortBy, isAsc);
 
         return ResponseEntity.ok(responseList);
     }
