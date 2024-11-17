@@ -35,7 +35,7 @@ public class CategoryService {
         for(String categoryName : categorySet) {
             Category category = categoryRepository.findByName(categoryName)
                     .orElseGet(() -> {
-                        // 없으면 새로 생성하고 저장
+                        // 없으면 새로 생성하고 저장 -> 예외 처리하기
                         Category newCategory = Category.from(categoryName);
                         categoryList.add(newCategory);
                         return categoryRepository.save(newCategory);

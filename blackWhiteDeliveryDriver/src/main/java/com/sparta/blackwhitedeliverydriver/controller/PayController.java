@@ -3,16 +3,17 @@ package com.sparta.blackwhitedeliverydriver.controller;
 import com.sparta.blackwhitedeliverydriver.dto.PayApproveResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayGetDetailResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayGetResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRefundResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.PayRequestDto;
-import com.sparta.blackwhitedeliverydriver.dto.PayReadyResponseDto;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import com.sparta.blackwhitedeliverydriver.service.PayService;
-import java.util.List;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -36,8 +37,7 @@ public class PayController {
     @Secured({"ROLE_CUSTOMER"})
     @PostMapping("/ready")
     public ResponseEntity<PayReadyResponseDto> readyToPay(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                          @RequestBody PayRequestDto request) {
-        log.info("user : {}", userDetails.getUser().getUsername());
+                                                          @RequestBody @Valid PayRequestDto request) {
         //결제 준비
         PayReadyResponseDto response = payService.readyToPay(userDetails.getUsername(), request);
         //201 반환
@@ -49,15 +49,16 @@ public class PayController {
     public ResponseEntity<PayApproveResponseDto> afterPay(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                           @RequestParam("pg_token") String pgToken,
                                                           @RequestParam("tid") String tid) {
-        log.info("{}", tid);
+        //결제 승인
         PayApproveResponseDto response = payService.approvePay(userDetails.getUsername(), pgToken, tid);
+        //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Secured({"ROLE_CUSTOMER"})
     @PostMapping("/refund")
     public ResponseEntity<PayRefundResponseDto> refundPay(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                          @RequestBody PayRefundRequestDto request) {
+                                                          @RequestBody @Valid PayRefundRequestDto request) {
         //환불
         PayRefundResponseDto response = payService.refundPayment(userDetails.getUsername(), request);
 
@@ -67,9 +68,14 @@ public class PayController {
 
     @Secured({"ROLE_CUSTOMER", "ROLE_MASTER", "ROLE_MANAGER"})
     @GetMapping
-    public ResponseEntity<List<PayGetResponseDto>> getPays(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<Page<PayGetResponseDto>> getPays(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                           @RequestParam("page") int page,
+                                                           @RequestParam("size") int size,
+                                                           @RequestParam("sortBy") String sortBy,
+                                                           @RequestParam("isAsc") boolean isAsc) {
         //pay 목록 조회
-        List<PayGetResponseDto> responses = payService.getPays(userDetails.getUsername());
+        Page<PayGetResponseDto> responses = payService.getPays(userDetails.getUsername(), page - 1, size, sortBy,
+                isAsc);
 
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(responses);
@@ -84,5 +90,20 @@ public class PayController {
 
         //200 반환
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Secured({"ROLE_MASTER", "ROLE_MANAGER"})
+    @GetMapping("/search")
+    public ResponseEntity<Page<PayGetResponseDto>> searchPayments(
+            @RequestParam("storeName") String storeName,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc) {
+
+        Page<PayGetResponseDto> response = payService.searchPaymentsByStoreName(storeName, page, size, sortBy,
+                isAsc);
+
+        return ResponseEntity.ok(response);
     }
 }
