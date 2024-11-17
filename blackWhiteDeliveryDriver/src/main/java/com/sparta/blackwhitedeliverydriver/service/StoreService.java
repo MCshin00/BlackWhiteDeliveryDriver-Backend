@@ -1,31 +1,40 @@
 package com.sparta.blackwhitedeliverydriver.service;
 
-import com.sparta.blackwhitedeliverydriver.dto.ProductResponseDto;
+import com.sparta.blackwhitedeliverydriver.dto.StoreIdResponseDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreRequestDto;
 import com.sparta.blackwhitedeliverydriver.dto.StoreResponseDto;
 import com.sparta.blackwhitedeliverydriver.entity.Category;
-import com.sparta.blackwhitedeliverydriver.entity.Product;
 import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.StoreCategory;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
+import com.sparta.blackwhitedeliverydriver.exception.CategoryExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.CategoryRepository;
-import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreCategoryRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
+import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
 import com.sparta.blackwhitedeliverydriver.security.UserDetailsImpl;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
 @Service
@@ -34,7 +43,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final StoreCategoryRepository storeCategoryRepository;
     private final CategoryRepository categoryRepository;
-    private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public StoreIdResponseDto createStore(@Valid StoreRequestDto requestDto, User user) {
@@ -149,7 +158,7 @@ public class StoreService {
         return user.getUsername();
     }
 
-    public List<StoreResponseDto> getStores(User user, int page, int size, String sortBy, boolean isAsc) {
+    public List<StoreResponseDto> getStores(int page, int size, String sortBy, boolean isAsc) {
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
