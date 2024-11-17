@@ -92,6 +92,7 @@ public class PayController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Secured({"ROLE_MASTER", "ROLE_MANAGER"})
     @GetMapping("/search")
     public ResponseEntity<Page<PayGetResponseDto>> searchPayments(
             @RequestParam("storeName") String storeName,
