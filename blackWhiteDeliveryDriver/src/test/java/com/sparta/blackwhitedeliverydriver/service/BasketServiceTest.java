@@ -20,6 +20,7 @@ import com.sparta.blackwhitedeliverydriver.entity.UserRoleEnum;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
@@ -37,10 +38,11 @@ class BasketServiceTest {
     UserRepository userRepository = mock(UserRepository.class);
     StoreRepository storeRepository = mock(StoreRepository.class);
     ProductRepository productRepository = mock(ProductRepository.class);
+    OrderRepository orderRepository = mock(OrderRepository.class);
 
     @BeforeEach
     public void setUp() {
-        basketService = new BasketService(basketRepository, userRepository, storeRepository, productRepository);
+        basketService = new BasketService(basketRepository, userRepository, storeRepository, productRepository,orderRepository);
     }
 
     @Test
@@ -81,7 +83,6 @@ class BasketServiceTest {
                 .build();
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(productId2)
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
 
@@ -108,7 +109,6 @@ class BasketServiceTest {
         int quantity = 2;
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(productId)
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
 
@@ -134,7 +134,6 @@ class BasketServiceTest {
                 .build();
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(productId)
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
 
@@ -166,7 +165,6 @@ class BasketServiceTest {
                 .build();
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(productId)
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
 
@@ -205,7 +203,6 @@ class BasketServiceTest {
                 .build();
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(productId)
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
 
@@ -255,7 +252,6 @@ class BasketServiceTest {
                 .build();
         BasketAddRequestDto request = BasketAddRequestDto.builder()
                 .productId(product2.getProductId())
-                .storeId(storeId)
                 .quantity(quantity)
                 .build();
 

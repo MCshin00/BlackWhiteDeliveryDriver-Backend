@@ -10,8 +10,10 @@ import com.sparta.blackwhitedeliverydriver.entity.Store;
 import com.sparta.blackwhitedeliverydriver.entity.User;
 import com.sparta.blackwhitedeliverydriver.exception.BasketExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.ExceptionMessage;
+import com.sparta.blackwhitedeliverydriver.exception.OrderExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.exception.StoreExceptionMessage;
 import com.sparta.blackwhitedeliverydriver.repository.BasketRepository;
+import com.sparta.blackwhitedeliverydriver.repository.OrderRepository;
 import com.sparta.blackwhitedeliverydriver.repository.ProductRepository;
 import com.sparta.blackwhitedeliverydriver.repository.StoreRepository;
 import com.sparta.blackwhitedeliverydriver.repository.UserRepository;
@@ -35,6 +37,7 @@ public class BasketService {
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional
     public BasketResponseDto addProductToBasket(String username, BasketAddRequestDto request) {
@@ -43,24 +46,22 @@ public class BasketService {
                 .orElseThrow(() -> new NullPointerException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
         checkDeletedUser(user);
 
-        // 같은 지점에서 담은 상품인지 체크
-        Store store = storeRepository.findById(request.getStoreId())
-                .orElseThrow(() -> new NullPointerException("점포를 찾을 수 없습니다."));
-        checkDeletedStore(store);
+        //활성화 주문 체크
+        checkCreatedOrderByUser(username);
 
-        // 상품이 유효성, 중복 체크
+        // 상품이 유효성
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new NullPointerException("상품을 찾을 수 없습니다."));
         checkDeletedProduct(product);
 
         // 담은 상품이 중복된 상품인지 체크
-        List<Basket> baskets = basketRepository.findAllByUser(user);
+        List<Basket> baskets = basketRepository.findAllByUserAndNotDeleted(user);
         checkDuplicatedProduct(product, baskets);
 
         // 담은 상품의 지점이 장바구니 상품의 지점과 다른지 체크
         checkProductStore(product, baskets);
 
-        Basket basket = Basket.ofUserAndStoreAndRequest(user, store, product, request);
+        Basket basket = Basket.ofUserAndStoreAndRequest(user, product.getStore(), product, request);
 
         basket = basketRepository.save(basket);
 
@@ -196,5 +197,11 @@ public class BasketService {
         if (basket.getDeletedDate() != null || basket.getDeletedBy() != null) {
             throw new IllegalArgumentException(BasketExceptionMessage.BASKET_NOT_FOUND.getMessage());
         }
+    }
+    private void checkCreatedOrderByUser(String username) {
+        orderRepository.findActiveOrderByUser(username)
+                .ifPresent(order -> {
+                    throw new IllegalArgumentException(OrderExceptionMessage.ORDER_ALREADY_EXIST.getMessage());
+                });
     }
 }

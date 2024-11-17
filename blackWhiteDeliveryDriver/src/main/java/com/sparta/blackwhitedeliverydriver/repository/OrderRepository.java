@@ -21,4 +21,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     Page<Order> findAllByStoreAndNotDeleted(Store store, Pageable pageable);
     @Query("SELECT o FROM Order o WHERE o.store.storeName LIKE %:storeName%") // 관리자용 deletedAt이 null이 아닌 것도 포함
     Page<Order> findByStoreNameContaining(@Param("storeName") String storeName, Pageable pageable);
+    @Query("SELECT o FROM Order o WHERE o.user.username = :username AND o.status = 'CREATE' AND o.deletedDate IS NULL")
+    Optional<Order> findActiveOrderByUser(@Param("username") String username);
 }
